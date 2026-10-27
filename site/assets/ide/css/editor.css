@@ -10,8 +10,10 @@
 .fi.folder { background: none; color: #9aa7b0; font-size: 13px; border-radius: 0; } .fi.f-yml { background: none; color: #d0a85c; font-size: 13px; } .fi.f-http { background: none; color: #7ab0e8; font-size: 15px; } .fi.f-sql { background: none; color: #c7a24f; font-size: 14px; } .fi.f-grd { background: #02303a; border-radius: 3px; }
 .fi.f-doc { background: #7a5bd8; border-radius: 4px; }
 
-#tabs { padding: 0 4px; gap: 2px; align-items: stretch; }
-.tab { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding: 0 10px; border-radius: 8px 8px 0 0; color: #a7abb2; white-space: nowrap; cursor: pointer; }
+/* 탭이 많아도 줄바꿈하지 않고 한 줄로 두고, 넘치면 아주 얇은 스크롤(또는 휠)로 이동 */
+#tabs { position: relative; padding: 0 4px; gap: 2px; align-items: stretch; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+#tabs:hover { scrollbar-width: thin; } #tabs::-webkit-scrollbar { height: 3px; }
+.tab { flex: none; max-width: 220px; display: flex; align-items: center; gap: 8px; margin-top: 4px; padding: 0 10px; border-radius: 8px 8px 0 0; color: #a7abb2; white-space: nowrap; cursor: pointer; }
 .tab:hover { background: #33353a; } .tab.on { background: var(--editor); color: #fff; box-shadow: inset 0 -2px 0 var(--accent); }
 .tab.haserr span { color: #ff7b86; text-decoration: underline wavy var(--err); text-underline-offset: 3px; }
 .tab .x { color: var(--dim); font-weight: 400; padding: 0 4px; border-radius: 4px; visibility: hidden; } .tab:hover .x, .tab.on .x { visibility: visible; } .tab .x:hover { background: #4a4d52; color: #fff; }
@@ -36,3 +38,7 @@
 /* 미션 위치 강조: 해당 줄이 노랗게 번쩍임 */
 .flashline { position: absolute; left: 0; right: 0; height: 20px; z-index: 1; pointer-events: none; background: #ffd16666; box-shadow: inset 3px 0 0 #ffb703; animation: flashline 3.2s ease-out forwards; }
 @keyframes flashline { 0%, 30% { background: #ffd166aa; } 55% { background: #ffd16633; } 70% { background: #ffd166aa; } 100% { background: #ffd16600; box-shadow: inset 3px 0 0 #ffb70300; } }
+
+.tab > span:not(.fi) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 프로젝트 / 개념 목록: 가로 스크롤바 없이 말줄임 */
+#tree, #clist { overflow-x: hidden; }

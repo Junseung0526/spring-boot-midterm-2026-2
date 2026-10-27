@@ -17,7 +17,7 @@
 .cp-step { font-size: 11px; letter-spacing: .08em; color: var(--accent2); font-weight: 700; } .cp-t { margin: 4px 0 6px; font-size: 16px; color: #fff; } .cp-d { margin: 0; line-height: 1.7; color: var(--text); }
 .cp-code { background: var(--editor); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; }
 .cp-file { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--panel); border-bottom: 1px solid var(--border); font-size: 12px; } .cp-file em { margin-left: auto; color: var(--dim); font-style: normal; }
-.cp-pre { padding: 10px 0; font: 13px/20px var(--mono); overflow: auto; flex: 1; max-height: 340px; }
+.cp-pre { padding: 10px 0; font: 13px/20px var(--mono); overflow: auto; flex: 1; max-height: 340px; } .cp-pre::-webkit-scrollbar { height: 5px; }
 .cl { display: flex; white-space: pre; } .cl i { flex: none; width: 40px; text-align: right; padding-right: 14px; color: var(--gutter-text); font-style: normal; user-select: none; } .cl > span { padding-right: 16px; }
 .cl .k { color: var(--kw); } .cl .s { color: var(--str); } .cl .n { color: var(--num); } .cl .a { color: var(--ann); } .cl .c { color: var(--cm); font-style: italic; }
 .caret { display: inline-block; width: 7px; height: 15px; background: var(--text); vertical-align: -2px; animation: blink 1s steps(1) infinite; } @keyframes blink { 50% { opacity: 0; } }
@@ -45,7 +45,7 @@
 .doc .callout { border-left: 3px solid var(--accent2); background: #232a38; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; } .doc .callout.warn { border-color: var(--warn); background: #3a3220; }
 .doc ul { padding-left: 1.3em; } .doc .tablewrap { overflow-x: auto; }
 .wcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-.wcards a { display: grid; grid-template-columns: 30px 1fr; grid-template-areas: "i b" "i s"; column-gap: 10px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
+.wcards a { display: grid; grid-template-columns: 30px 1fr; grid-template-areas: "i b" "i s" "i t"; column-gap: 10px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
 .wcards a:hover { border-color: var(--accent); background: #2d3038; } .wcards i { grid-area: i; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: #2d4a35; color: #b7e4c0; font-style: normal; font-weight: 700; }
 .wcards .act i { background: #243d6b; color: #9ec1ff; } .wcards b { grid-area: b; color: #fff; } .wcards span { grid-area: s; color: var(--dim); font-size: 12.5px; }
 
@@ -62,14 +62,16 @@
 .ex { margin-top: 8px; padding: 8px 12px; background: #1b1c1f; border-radius: 8px; color: #c4c8cf; line-height: 1.65; }
 .end-go { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .go { padding: 8px 14px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; } .go:hover { background: var(--accent2); } .go.practice { background: #2d6a3a; } .go.practice:hover { background: #378247; } .go.ghost { background: var(--btn); color: var(--text); font-weight: 400; }
-.wcards a.seen::after { content: "✓ 완료"; position: absolute; right: 12px; top: 10px; font-size: 11px; color: #7fd37f; } .wcards a { position: relative; }
+/* 배지는 제목과 겹치지 않도록 카드 안의 세 번째 줄에 둔다 */
+.wcards a::after { grid-area: t; margin-top: 6px; font-size: 11px; font-weight: 600; }
+.wcards a.seen::after { content: "✓ 완료"; color: #7fd37f; }
 
 /* 애니메이션 존재/위치 강조 */
 .cp svg .sn.on .box { animation: glow 1.4s ease-in-out infinite; }
 @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 0 #ffb70300); } 50% { filter: drop-shadow(0 0 9px #ffb703cc); } }
 .cp-legend { margin-top: 8px; padding: 6px 12px; background: #2a2d33; border-radius: 8px; color: #b4bac2; font-size: 12px; }
 .cp-ctl > button { min-width: 38px; height: 32px; display: inline-grid; place-items: center; } .cp-ctl > button .ic { width: 16px; height: 16px; } .cp-ctl .play { min-width: 46px; }
-.lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; } .lg.o { border: 2px solid #ffb703; } .lg.y { background: #ffd166; border-radius: 50%; }
+.ldot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; } .ldot.o { border: 2px solid #ffb703; } .ldot.y { background: #ffd166; border-radius: 50%; }
 .cta { display: inline-block; padding: 10px 20px; border-radius: 10px; background: var(--accent); color: #fff !important; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; box-shadow: 0 0 0 0 #3574f088; animation: ring 2s infinite; } .cta:hover { background: var(--accent2); }
 @keyframes ring { 70% { box-shadow: 0 0 0 12px #3574f000; } 100% { box-shadow: 0 0 0 0 #3574f000; } }
-.wcards a[data-open^="concept:"]:not(.seen)::after { content: "▶ 애니메이션"; position: absolute; right: 12px; top: 10px; font-size: 11px; color: #6b9fff; }
+.wcards a[data-open^="concept:"]:not(.seen)::after { content: "▶ 애니메이션"; color: #6b9fff; }

@@ -13,7 +13,7 @@ function mount(host, concept) {
   host.innerHTML = `<div class="cp">
     <div class="cp-l">
       <div class="cp-svg">${IDE.svg[concept.svg]}</div>
-      <div class="cp-legend"><i class="lg o"></i>주황 테두리 = 지금 설명하는 곳 &nbsp;·&nbsp; <i class="lg y"></i>움직이는 점 = 호출/데이터 이동 &nbsp;·&nbsp; 점선 = 응답</div>
+      <div class="cp-legend"><i class="ldot o"></i>주황 테두리 = 지금 설명하는 곳 &nbsp;·&nbsp; <i class="ldot y"></i>움직이는 점 = 호출/데이터 이동 &nbsp;·&nbsp; 점선 = 응답</div>
       <div class="cp-ctl">
         <button data-k="reset" title="처음으로"><svg class="ic"><use href="#i-rerun"/></svg></button><button data-k="prev" title="이전 단계 (←)"><svg class="ic"><use href="#i-prev"/></svg></button>
         <button data-k="play" class="play" title="재생 / 정지 (스페이스)">${ICON.pause}</button><button data-k="next" title="다음 단계 (→)"><svg class="ic"><use href="#i-next"/></svg></button>
