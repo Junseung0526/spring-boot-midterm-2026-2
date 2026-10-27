@@ -4,18 +4,19 @@
 const IDE = (globalThis.IDE ??= {});
 const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const escAttr = s => esc(s).replace(/"/g, '&quot;');
-const KW = new Set('public private protected class interface record enum extends implements return new final static void import package throws throw if else for while try catch finally this super null true false var int long double boolean char byte short instanceof switch case default break continue plugins id implementation runtimeOnly compileOnly annotationProcessor testImplementation'.split(' '));
+const KW = new Set('public private protected class interface record enum extends implements return new final static void import package throws throw if else for while try catch finally this super null true false var int long double boolean char byte short instanceof switch case default break continue'.split(' '));
+const GRADLE_KW = new Set('plugins id version implementation runtimeOnly compileOnly annotationProcessor testImplementation group java'.split(' '));
 const JAVA = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(@[A-Za-z_]\w*)|\b([A-Za-z_]\w*)\b|\b(\d[\d_]*L?)\b/g;
 
 function emitter() {
   let out = '';
   return { add(cls, t) { out += t.split('\n').map(p => cls ? `<span class="${cls}">${esc(p)}</span>` : esc(p)).join('\n'); }, get: () => out };
 }
-function java(text) {
+function java(text, extra) {
   const e = emitter(); let last = 0, m; JAVA.lastIndex = 0;
   while ((m = JAVA.exec(text))) {
     e.add('', text.slice(last, m.index));
-    const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'a' : m[4] ? (KW.has(m[4]) ? 'k' : '') : 'n';
+    const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'a' : m[4] ? (KW.has(m[4]) || (extra && extra.has(m[4])) ? 'k' : '') : 'n';
     e.add(cls, m[0]); last = JAVA.lastIndex;
   }
   e.add('', text.slice(last));
@@ -43,7 +44,7 @@ function http(text) {
     return jsonish(l);
   });
 }
-const byName = n => /\.(java|gradle)$/.test(n) ? java : /\.ya?ml$/.test(n) ? yaml : /\.sql$/.test(n) ? sql : /\.http$/.test(n) ? http : l => l.split('\n').map(esc);
+const byName = n => /\.gradle$/.test(n) ? (t => java(t, GRADLE_KW)) : /\.java$/.test(n) || n === 'x.java' ? java : /\.ya?ml$/.test(n) ? yaml : /\.sql$/.test(n) ? sql : /\.http$/.test(n) ? http : l => l.split('\n').map(esc);
 
 /** 줄별 HTML. errs: Map(line → message) 이면 빨간 물결 밑줄을 겹친다 */
 function lines(text, name, errs) {
