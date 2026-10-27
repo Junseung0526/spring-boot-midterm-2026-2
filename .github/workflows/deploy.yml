@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: JS 문법 검사
-        run: for f in site/assets/*.js; do node --check "$f"; done
+        run: find site/assets -name "*.js" -print0 | xargs -0 -n1 node --check
       - name: 필수 파일 확인
-        run: test -f site/index.html && test -f site/assets/style.css
+        run: test -f site/index.html && test -f site/ide.html && test -f site/assets/style.css
 
   deploy:
     needs: check

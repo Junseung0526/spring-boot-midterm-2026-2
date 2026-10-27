@@ -1,0 +1,34 @@
+/* css/layout.css — 전체 레이아웃: 타이틀바 / 도구창 / 에디터 / 하단창 / 상태바 */
+.ide { display: grid; height: 100vh; grid-template-rows: 38px 1fr 24px; grid-template-columns: 250px 1fr 300px; grid-template-areas: "top top top" "left center right" "status status status"; }
+.ide.noleft { grid-template-columns: 0 1fr 300px; } .ide.noright { grid-template-columns: 250px 1fr 0; } .ide.noleft.noright { grid-template-columns: 0 1fr 0; }
+.ide.noleft #tree-win, .ide.noright #mis-win { display: none; }
+.titlebar { grid-area: top; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: var(--panel); border-bottom: 1px solid #2b2b2b; white-space: nowrap; overflow: hidden; }
+.titlebar .proj { font-weight: 600; } .titlebar .back { color: var(--dim); text-decoration: none; padding: 3px 8px; border-radius: 4px; } .titlebar .back:hover { background: #4b4d4f; }
+.runcfg { display: flex; align-items: center; gap: 2px; margin-left: auto; background: #45494a; border-radius: 6px; padding: 2px 4px; }
+.runcfg .cfg { padding: 3px 10px; color: #cfd8dc; } .runcfg .cfg::before { content: "▣ "; color: var(--ok); }
+.tb { width: 30px; height: 26px; border-radius: 4px; font-size: 15px; } .tb:hover:not(:disabled) { background: #5a5e60; }
+.tb.run { color: var(--ok); } .tb.stop { color: var(--err); } .tb.hot { color: var(--warn); animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+#srv { font-size: 12px; padding: 3px 10px; border-radius: 10px; background: #45494a; color: var(--dim); }
+#srv.on { color: #bfe8a8; background: #2f4a2a; } #srv.dirty { color: #ffe3a0; background: #5a4a1e; } #srv.build { color: #a8d0ff; background: #243d5a; }
+.tw { background: var(--panel); display: flex; flex-direction: column; min-height: 0; border: 0 solid #2b2b2b; }
+#tree-win { grid-area: left; border-right-width: 1px; } #mis-win { grid-area: right; border-left-width: 1px; }
+.twh { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; font-size: 12px; background: var(--panel); border-bottom: 1px solid #2b2b2b; color: #bbb; }
+.twb { flex: 1; overflow: auto; min-height: 0; }
+.center { grid-area: center; display: grid; grid-template-rows: 30px 1fr 240px; min-width: 0; min-height: 0; background: var(--bg); }
+#tabs { display: flex; background: var(--panel); border-bottom: 1px solid #2b2b2b; overflow-x: auto; }
+#editor { min-height: 0; position: relative; }
+#console { border-top: 1px solid #2b2b2b; background: var(--bg); display: flex; flex-direction: column; min-height: 0; }
+.status { grid-area: status; display: flex; align-items: center; gap: 16px; padding: 0 10px; background: var(--panel); border-top: 1px solid #2b2b2b; font-size: 12px; color: #bbb; }
+.status .sp { flex: 1; } .status .bad { color: var(--err); } .status .good { color: var(--ok); }
+.strip { background: var(--panel); }
+#toast { position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 20px); background: #1f3b1f; color: #d4f5c4; border: 1px solid #3d7a3d; padding: 9px 18px; border-radius: 8px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+#modal { position: fixed; inset: 0; background: #000a; z-index: 40; display: grid; place-items: center; }
+#modal[hidden] { display: none; }
+#modal .mbox { width: min(900px, 92vw); max-height: 86vh; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+#modal .mtitle { padding: 10px 14px; border-bottom: 1px solid #2b2b2b; font-weight: 600; } #modal .mbody { overflow: auto; padding: 10px 14px; }
+@media (max-width: 1000px) {
+  html, body { overflow: auto; } .ide { height: auto; min-height: 100vh; grid-template-columns: 1fr; grid-template-rows: 38px auto auto auto auto 24px; grid-template-areas: "top" "center" "left" "right" "status" "status"; }
+  .ide.noleft, .ide.noright { grid-template-columns: 1fr; } .center { grid-template-rows: 30px 480px 260px; } .tw .twb { max-height: 340px; }
+}

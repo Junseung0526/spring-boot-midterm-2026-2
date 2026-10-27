@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IntelliJ 실습 — Spring Boot 4</title>
+<meta name="description" content="IntelliJ 처럼 코드를 직접 작성하고, 실행하고, HTTP 요청까지 보내 보는 Spring Boot 4 실습 환경 (시뮬레이션)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23000'/%3E%3Cpath d='M5 5h14v3H5zM6 24h10v3H6z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/ide/css/theme.css">
+<link rel="stylesheet" href="assets/ide/css/layout.css">
+<link rel="stylesheet" href="assets/ide/css/editor.css">
+<link rel="stylesheet" href="assets/ide/css/panels.css">
+</head>
+<body>
+<div class="ide">
+  <header class="titlebar">
+    <button class="tb" id="btn-left" title="Project 도구창 (왼쪽)">☰</button>
+    <span class="proj">blog</span>
+    <a class="back" href="index.html">← 학습 사이트</a>
+    <div class="runcfg">
+      <span class="cfg">BlogApplication</span>
+      <button class="tb run" id="btn-run" title="Run (Shift+F10)">▶</button>
+      <button class="tb" id="btn-rerun" title="Rerun">⟳</button>
+      <button class="tb stop" id="btn-stop" title="Stop (Ctrl+F2)" disabled>■</button>
+    </div>
+    <span id="srv" class="off">Stopped</span>
+    <button class="tb" id="btn-right" title="Tasks 도구창 (오른쪽)">✔</button>
+  </header>
+
+  <aside class="tw" id="tree-win"><div class="twh"><b>Project</b></div><div class="twb" id="tree"></div></aside>
+
+  <main class="center">
+    <div id="tabs"></div>
+    <div id="editor"></div>
+    <section id="console"></section>
+  </main>
+
+  <aside class="tw" id="mis-win"><div class="twb" id="missions"></div></aside>
+
+  <footer class="status"><span id="st-file"></span><span class="sp"></span><span id="st-prob" class="good">✔ No problems</span><span id="st-pos">1:1</span><span>UTF-8</span><span>LF</span><span>4 spaces</span><span>Java 21</span></footer>
+</div>
+<div id="toast" role="status"></div>
+<div id="modal" hidden><div class="mbox"><div class="mtitle">정답 코드 (미션 1~6)</div><div class="mbody"></div></div></div>
+
+<!-- 데이터 -->
+<script src="assets/data.js"></script>
+<!-- core: 파서 + 스프링 시뮬레이션 엔진 -->
+<script src="assets/ide/core/constants.js"></script>
+<script src="assets/ide/core/util.js"></script>
+<script src="assets/ide/core/parser.js"></script>
+<script src="assets/ide/core/model.js"></script>
+<script src="assets/ide/core/compile.js"></script>
+<script src="assets/ide/core/beans.js"></script>
+<script src="assets/ide/core/web.js"></script>
+<script src="assets/ide/core/boot.js"></script>
+<script src="assets/ide/core/http.js"></script>
+<!-- project: 시작 코드 / 정답 / 미션 -->
+<script src="assets/ide/project/starter.js"></script>
+<script src="assets/ide/project/solutions.js"></script>
+<script src="assets/ide/project/missions.js"></script>
+<!-- ui -->
+<script src="assets/ide/ui/state.js"></script>
+<script src="assets/ide/ui/highlight.js"></script>
+<script src="assets/ide/ui/editor.js"></script>
+<script src="assets/ide/ui/tree.js"></script>
+<script src="assets/ide/ui/tabs.js"></script>
+<script src="assets/ide/ui/console.js"></script>
+<script src="assets/ide/ui/analysis.js"></script>
+<script src="assets/ide/ui/missions.js"></script>
+<script src="assets/ide/runner.js"></script>
+<script src="assets/ide/ui/main.js"></script>
+</body>
+</html>

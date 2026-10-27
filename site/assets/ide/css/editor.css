@@ -1,0 +1,27 @@
+/* css/editor.css — 파일 트리 · 탭 · 코드 에디터 · 자동완성 */
+.tr { display: flex; align-items: center; gap: 4px; padding: 2px 8px 2px calc(8px + var(--d) * 14px); white-space: nowrap; cursor: default; user-select: none; }
+.tr:hover { background: #4b4d4f66; } .tr.on { background: #0d293e; outline: 1px solid #3d6b99; outline-offset: -1px; }
+.tr .arrow { width: 10px; color: var(--dim); font-size: 10px; } .tr small { color: var(--dim); margin-left: 4px; }
+.tr.haserr .nm { color: var(--err); text-decoration: underline wavy var(--err); text-underline-offset: 3px; } .tr.mod .nm::after { content: " ●"; color: #5c8fc2; font-size: 8px; }
+.tr.dir, .tr.proj { cursor: pointer; }
+.fi { flex: none; font-style: normal; display: inline-grid; place-items: center; width: 16px; height: 16px; font-size: 10px; font-weight: 700; border-radius: 50%; color: #fff; }
+.fi.j-class { background: #3b8d3b; } .fi.j-interface { background: #8a5dc2; } .fi.j-record { background: #2e86ab; } .fi.j-enum { background: #c07a2b; }
+.fi.folder { background: none; color: #9aa7b0; font-size: 13px; border-radius: 0; } .fi.f-yml { background: none; color: #d0a85c; font-size: 13px; } .fi.f-http { background: none; color: #7ab0e8; font-size: 15px; } .fi.f-sql { background: none; color: #c7a24f; font-size: 14px; } .fi.f-grd { background: #02303a; border-radius: 3px; }
+.tab { display: flex; align-items: center; gap: 8px; padding: 0 10px; border-right: 1px solid #2b2b2b; color: #bbb; white-space: nowrap; cursor: pointer; }
+.tab.on { background: var(--bg); box-shadow: inset 0 -3px 0 var(--accent); color: #fff; } .tab.haserr span { color: var(--err); text-decoration: underline wavy var(--err); text-underline-offset: 3px; }
+.tab .x { color: var(--dim); font-weight: 400; padding: 0 3px; border-radius: 3px; } .tab .x:hover { background: #5a5e60; color: #fff; }
+
+.ed { height: 100%; } .scr { height: 100%; overflow: auto; display: flex; align-items: flex-start; background: var(--bg); font-family: var(--mono); font-size: 13px; line-height: 20px; }
+.gut { position: sticky; left: 0; z-index: 3; flex: none; min-width: 64px; background: #313335; color: #606366; text-align: right; user-select: none; min-height: 100%; border-right: 1px solid #3a3a3a; padding-bottom: 200px; }
+.gl { height: 20px; padding-right: 8px; position: relative; } .gl .grun { position: absolute; left: 6px; color: var(--ok); cursor: pointer; font-size: 12px; } .gl .grun:hover { filter: brightness(1.5); }
+.gl .gerr { position: absolute; left: 24px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--err); }
+.code { position: relative; flex: 1 0 auto; min-width: 0; }
+.hl, .ta { margin: 0; padding: 0 24px 200px 8px; font: inherit; line-height: 20px; white-space: pre; tab-size: 4; letter-spacing: 0; border: 0; }
+.hl { color: var(--text); pointer-events: none; min-width: 100%; }
+.ta { position: absolute; inset: 0; width: 100%; background: transparent; color: transparent; caret-color: #bbb; resize: none; outline: none; overflow: hidden; -webkit-text-fill-color: transparent; }
+.ta::selection { background: var(--sel); -webkit-text-fill-color: transparent; }
+.hl .k { color: var(--kw); } .hl .s { color: var(--str); } .hl .n { color: var(--num); } .hl .a { color: var(--ann); } .hl .c { color: var(--cm); font-style: italic; }
+.hl .err { text-decoration: underline wavy var(--err); text-decoration-skip-ink: none; text-underline-offset: 3px; background: #ff6b6814; }
+.ac { position: absolute; z-index: 10; min-width: 340px; max-width: 520px; background: #3c3f41; border: 1px solid #646464; box-shadow: 0 6px 20px #000a; font-family: system-ui, sans-serif; font-size: 12.5px; line-height: 1.3; }
+.ac[hidden] { display: none; } .aci { display: flex; align-items: center; gap: 8px; padding: 3px 8px; white-space: nowrap; overflow: hidden; } .aci.on { background: #0d293e; } .aci b { color: #dfe6ea; } .aci small { color: var(--dim); } .aci em { color: #8aa; font-style: normal; margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+.ico { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; color: #fff; } .ico.ia { background: #a58a2a; } .ico.ic { background: #3b8d3b; }
