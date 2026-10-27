@@ -1,7 +1,7 @@
 /* css/layout.css — New UI 레이아웃: 메인 툴바 / 좌우 아이콘 스트립 / 도구창 / 에디터 / 하단창 / 상태바 */
-.ide { display: grid; height: 100vh; grid-template-rows: 42px 1fr 26px; grid-template-columns: 42px 260px minmax(0, 1fr) 310px 42px;
+.ide { display: grid; height: 100vh; grid-template-rows: 42px 1fr 26px; grid-template-columns: 42px 290px minmax(0, 1fr) 310px 42px;
   grid-template-areas: "top top top top top" "ls ltw center rtw rs" "status status status status status"; }
-.ide.noleft { grid-template-columns: 42px 0 minmax(0, 1fr) 310px 42px; } .ide.noright { grid-template-columns: 42px 260px minmax(0, 1fr) 0 42px; } .ide.noleft.noright { grid-template-columns: 42px 0 minmax(0, 1fr) 0 42px; }
+.ide.noleft { grid-template-columns: 42px 0 minmax(0, 1fr) 310px 42px; } .ide.noright { grid-template-columns: 42px 290px minmax(0, 1fr) 0 42px; } .ide.noleft.noright { grid-template-columns: 42px 0 minmax(0, 1fr) 0 42px; }
 .ide.noleft #ltw, .ide.noright #rtw { display: none; }
 
 /* 메인 툴바 */

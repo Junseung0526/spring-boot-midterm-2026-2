@@ -1,7 +1,8 @@
 /* css/editor.css — 프로젝트 트리 · 파일 탭 · 코드 에디터 · 자동완성 */
-.tr { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 calc(10px + var(--d) * 14px); white-space: nowrap; cursor: default; user-select: none; margin: 0 6px; border-radius: 5px; }
+.tr { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 calc(8px + var(--d) * 12px); white-space: nowrap; cursor: default; user-select: none; margin: 0 6px; border-radius: 5px; }
 .tr:hover { background: #35373b; } .tr.on { background: #2e436e; color: #fff; }
-.tr .arrow { width: 10px; color: var(--dim); font-size: 9px; } .tr small { color: var(--dim); margin-left: 4px; }
+.tr .arrow { flex: none; width: 10px; text-align: center; color: var(--dim); font-size: 9px; }
+.tr .nm, .tr b { min-width: 0; overflow: hidden; text-overflow: ellipsis; } .tr small { color: var(--dim); margin-left: 4px; }
 .tr.haserr .nm { color: #ff7b86; text-decoration: underline wavy var(--err); text-underline-offset: 3px; } .tr.mod .nm::after { content: " ●"; color: #5c8fc2; font-size: 8px; }
 .tr.dir, .tr.proj { cursor: pointer; }
 .fi { flex: none; font-style: normal; display: inline-grid; place-items: center; width: 16px; height: 16px; font-size: 10px; font-weight: 700; border-radius: 50%; color: #fff; }
