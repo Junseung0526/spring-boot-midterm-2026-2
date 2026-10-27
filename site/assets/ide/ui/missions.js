@@ -12,7 +12,7 @@ function create(host, modal, toast) {
       IDE.MISSIONS.map((m, i) => `<div class="mi ${state.done.has(m.id) ? 'done' : ''}">
         <div class="mt"><span class="ck">${state.done.has(m.id) ? '✔' : i + 1}</span><b>${m.title}</b></div>
         <p>${m.goal}</p>
-        <div class="ma"><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><a href="index.html${m.study}" target="_blank" rel="noopener">📖 개념</a></div>
+        <div class="ma"><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">📖 개념</button></div>
         ${openHints.has(m.id) ? `<ol class="mh2">${m.hints.map(h => `<li>${h}</li>`).join('')}</ol>` : ''}</div>`).join('') +
       `<div class="mfoot"><button data-sol>✅ 정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
        <p class="mnote">TIP · 코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
@@ -25,6 +25,7 @@ function create(host, modal, toast) {
   host.addEventListener('click', e => {
     const h = e.target.closest('[data-hint]');
     if (h) { const id = h.dataset.hint; openHints.has(id) ? openHints.delete(id) : openHints.add(id); draw(); }
+    const o = e.target.closest('[data-open]'); if (o) store.openFile(o.dataset.open);
     if (e.target.closest('[data-sol]')) openSolutions();
     if (e.target.closest('[data-reset]') && confirm('작성한 코드와 미션 진행 상태를 모두 초기화할까요?')) store.resetProject();
   });

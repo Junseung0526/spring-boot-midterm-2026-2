@@ -84,38 +84,11 @@ public record PostResponse(Long id, String title, String content) {
     }
 }
 `,
-[J + 'dto/ErrorResponse.java']: `package com.example.blog.dto;
-
-public record ErrorResponse(String message) {
-}
-`,
-[J + 'exception/PostNotFoundException.java']: `package com.example.blog.exception;
-
-public class PostNotFoundException extends RuntimeException {
-
-    public PostNotFoundException(Long id) {
-        super("게시글 " + id + " 를 찾을 수 없습니다");
-    }
-}
-`,
-[J + 'exception/GlobalExceptionHandler.java']: `package com.example.blog.exception;
-
-import com.example.blog.dto.ErrorResponse;
-
-// TODO 미션 5: 전역 예외 처리기로 만들어 PostNotFoundException 을 404 JSON 으로 응답하세요
-public class GlobalExceptionHandler {
-
-    public ErrorResponse handleNotFound(PostNotFoundException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-}
-`,
 [J + 'service/PostService.java']: `package com.example.blog.service;
 
 import com.example.blog.domain.Post;
 import com.example.blog.dto.PostRequest;
 import com.example.blog.dto.PostResponse;
-import com.example.blog.exception.PostNotFoundException;
 import com.example.blog.repository.PostRepository;
 
 import java.util.List;
@@ -136,9 +109,9 @@ public class PostService {
     }
 
     public PostResponse find(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(id));
-        return PostResponse.from(post);
+        return postRepository.findById(id)
+                .map(PostResponse::from)
+                .orElse(null);
     }
 
     public PostResponse create(PostRequest request) {
@@ -186,6 +159,8 @@ public class PostController {
     public PostResponse create(@RequestBody PostRequest request) {
         return postService.create(request);
     }
+
+    // TODO 미션 5: DELETE /api/posts/{id} 를 만들어 204 No Content 로 응답하세요 (서비스에 delete 메서드도 필요)
 }
 `,
 [J + 'aop/LogAspect.java']: `package com.example.blog.aop;
@@ -268,8 +243,8 @@ Content-Type: application/json
   "content": "내용"
 }
 
-### 5. 없는 게시글 — 404 + 메시지 JSON  (미션 5)
-GET http://localhost:8080/api/posts/999
+### 5. 게시글 삭제 — 204 No Content  (미션 5)
+DELETE http://localhost:8080/api/posts/1
 
 ### 6. 숫자가 아닌 id — 400
 GET http://localhost:8080/api/posts/abc
