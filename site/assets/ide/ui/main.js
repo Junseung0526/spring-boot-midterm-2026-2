@@ -7,15 +7,19 @@ const $ = s => document.querySelector(s);
 
 store.load();
 const toastEl = $('#toast');
-let toastT; const toast = m => { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 2600); };
+let toastT; const toast = IDE.toast = m => { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 2600); };
 
-const con = IDE.Console.create($('#console'), { onGoto: (p, l) => { store.openFile(p); setTimeout(() => ed.goto(l), 30); } });
+const con = IDE.Console.create($('#console'), { onGoto: (p, l) => { store.openFile(p); setTimeout(() => ed.goto(l), 30); }, onRunTests: () => runner.runTests() });
 const runner = IDE.Runner.create(con);
 
 const ed = IDE.Editor.create($('#editor'), {
   onChange: t => { if (state.active) { store.setContent(state.active, t); IDE.analysis.soon(); } },
   onRun: () => runner.run(),
-  onSend: line => runner.send(ed.value(), line),
+  onSend: line => {
+    const p = state.active;
+    if (/\.http$/.test(p)) runner.send(ed.value(), line);
+    else if (IDE.isTestPath(p)) { const t = IDE.testTargets(p, ed.value()).find(x => x.line === line); if (t) runner.runTests({ cls: t.cls, method: t.method }); }
+  },
   onSave: () => toast('Saved ✔ (자동 저장됩니다)'),
   onCaret: (l, c) => { $('#st-pos').textContent = `${l}:${c}`; },
 });
@@ -33,7 +37,16 @@ function showActive() {
 function decorate() {
   const p = state.active; if (!p || IDE.concepts.isConcept(p)) return;
   ed.setProblems(IDE.analysis.forFile(p));
-  ed.setRunLines(/\.http$/.test(p) ? state.files[p].split('\n').map((l, i) => /^(GET|POST|PUT|PATCH|DELETE)\s/.test(l) ? i + 1 : 0).filter(Boolean) : []);
+  if (/\.http$/.test(p)) ed.setRunLines(state.files[p].split('\n').map((l, i) => /^(GET|POST|PUT|PATCH|DELETE)\s/.test(l) ? { line: i + 1, title: '요청 실행 (Ctrl+Enter)' } : 0).filter(Boolean));
+  else if (IDE.isTestPath(p)) {   // 테스트 파일: 클래스/@Test 줄에 ▶ (실행 후에는 ✔ / ✖ 로 바뀜)
+    const res = state.session.tests && !state.session.tests.build ? state.session.tests.results : [];
+    ed.setRunLines(IDE.testTargets(p, state.files[p]).map(t => {
+      const mine = res.filter(r => r.cls === t.cls && (!t.method || r.method === t.method));
+      const st = !mine.length ? '' : mine.some(r => r.status === 'fail') ? 'fail' : mine.some(r => r.status === 'skip') ? 'skip' : 'pass';
+      const first = mine.find(r => r.status !== 'pass');
+      return { line: t.line, state: st, title: st === 'fail' ? '실패: ' + (first.msg || '').split('\n').filter(Boolean)[0] : t.method ? `${t.method} 실행` : `${t.cls} 전체 실행` };
+    }));
+  } else ed.setRunLines([]);
 }
 const cpane = IDE.ConceptPane.create($('#concept'));
 IDE.Tabs.create($('#tabs'));
@@ -91,6 +104,11 @@ $('#btn-concepts').addEventListener('click', () => {
 });
 document.body.classList.toggle('opened', IDE.concepts.isOpened());
 bus.on('opened', () => document.body.classList.add('opened'));
+bus.on('tests', () => decorate());                 // 테스트 결과를 거터 아이콘에 반영
+bus.on('testing', on => { $('#btn-test').disabled = on; });
+$('#btn-test').addEventListener('click', () => runner.runTests());
+$('#btn-newfile').addEventListener('click', () => IDE.NewFile.open(toast));
+bus.on('reset-tree', () => { IDE.analysis.run(); });
 if (!IDE.concepts.isOpened()) showTw('clist');   // 첫 방문: 개념 애니메이션 목록을 먼저 보여 준다
 $('#btn-ann').addEventListener('click', () => IDE.memo.open('ann'));
 $('#btn-exam').addEventListener('click', () => IDE.memo.open('exam'));

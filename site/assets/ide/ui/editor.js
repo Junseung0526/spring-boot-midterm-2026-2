@@ -17,7 +17,7 @@ function create(host, hooks) {
     hl.innerHTML = lines.map(l => l || ' ').join('\n') + '\n ';
     gut.innerHTML = lines.map((_, i) => {
       const n = i + 1, e = errs.has(n) ? '<i class="gerr" title="' + highlight.escAttr(errs.get(n)) + '"></i>' : '';
-      return `<div class="gl">${runLines.includes(n) ? `<b class="grun" data-line="${n}" title="요청 실행 (Ctrl+Enter)">▶</b>` : ''}${e}<span>${n}</span></div>`;
+      return `<div class="gl">${(() => { const rl = runLines.find(x => x.line === n); return rl ? `<b class="grun ${rl.state || ''}" data-line="${n}" title="${highlight.escAttr(rl.title || '실행')}">${{ pass: '✔', fail: '✖', skip: '⚠' }[rl.state] || '▶'}</b>` : ''; })()}${e}<span>${n}</span></div>`;
     }).join('');
     ta.style.height = hl.offsetHeight + 'px';
   }
@@ -139,7 +139,7 @@ function create(host, hooks) {
   return {
     setFile(name, text) { file = name; ta.value = text; errs = new Map(); render(); ac.hidden = true; scr.scrollTop = 0; scr.scrollLeft = 0; },
     setProblems(map) { errs = map; render(); },
-    setRunLines(l) { runLines = l; render(); },
+    setRunLines(l) { runLines = l.map(x => (typeof x === 'number' ? { line: x } : x)); render(); },
     focus() { ta.focus(); },
     /** 해당 줄을 잠시 노랗게 번쩍여 "여기를 보세요" 를 알려 준다 */
     flash(line) { host.querySelectorAll('.flashline').forEach(n => n.remove()); const d = document.createElement('div'); d.className = 'flashline'; d.style.top = (line - 1) * LH + 'px'; $('.code').appendChild(d); setTimeout(() => d.remove(), 3200); },

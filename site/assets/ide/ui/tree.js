@@ -44,7 +44,7 @@ function renderNode(node, depth, path) {
   }
   for (const f of node.files.sort()) {
     const name = f.split('/').pop(), err = state.problems.some(p => p.path === f && p.sev === 'error');
-    out += `<div class="tr file ${state.active === f ? 'on' : ''} ${err ? 'haserr' : ''} ${store.modified(f) ? 'mod' : ''}" style="--d:${depth}" data-file="${f}"><span class="arrow"></span>${fileIcon(f)}<span class="nm">${name}</span></div>`;
+    out += `<div class="tr file ${state.active === f ? 'on' : ''} ${err ? 'haserr' : ''} ${store.modified(f) ? 'mod' : ''}" style="--d:${depth}" data-file="${f}"><span class="arrow"></span>${fileIcon(f)}<span class="nm">${name}</span>${f in IDE.STARTER ? '' : '<small class="new">NEW</small>'}</div>`;
   }
   return out;
 }
@@ -57,7 +57,8 @@ function create(host) {
     if (f) store.openFile(f.dataset.file);
     else if (d) { const k = d.dataset.dir; collapsed.has(k) ? collapsed.delete(k) : collapsed.add(k); draw(); }
   });
-  ['tabs', 'problems', 'reset'].forEach(ev => bus.on(ev, draw));
+  ['tabs', 'problems', 'reset', 'reset-tree'].forEach(ev => bus.on(ev, draw));
+  host.addEventListener('contextmenu', e => { const f = e.target.closest('[data-file]'); if (f) { e.preventDefault(); IDE.NewFile.remove(f.dataset.file, m => IDE.toast?.(m)); } });
   bus.on('edit', draw);
   draw();
   return { draw };

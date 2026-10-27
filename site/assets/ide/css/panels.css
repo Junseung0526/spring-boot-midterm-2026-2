@@ -26,3 +26,19 @@
 .mi.current { border-color: var(--accent); background: #2a3349; box-shadow: 0 0 0 1px var(--accent) inset; }
 .next { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 10px; animation: pulse 1.6s infinite; }
 .ma .goto { color: #fff; background: #3b4f7d; padding: 3px 10px; border-radius: 6px; font-weight: 600; } .ma .goto:hover { background: var(--accent); }
+.ma { flex-wrap: wrap; gap: 4px 8px; } .ma button { white-space: nowrap; }
+@media (max-width: 1100px) { .ma button { font-size: 11.5px; padding: 2px 5px; } .ma .goto { padding: 3px 7px; } }
+
+/* Tests 탭 */
+.tsum { padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; font-family: var(--ui); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .tsum.good { background: #223a28; } .tsum.bad { background: #43282b; } .tsum small { color: var(--dim); } .tgo { margin-left: auto; padding: 4px 10px; background: var(--btn); border-radius: 6px; } .tgo:hover { background: var(--btn-hover); }
+.tcls { margin: 6px 0; font-family: var(--ui); } .tch { padding: 2px 4px; } .tch small { color: var(--dim); margin-left: 6px; }
+.tm { display: flex; gap: 8px; align-items: baseline; padding: 2px 4px 2px 22px; cursor: pointer; border-radius: 5px; } .tm:hover { background: #35373b; } .tm small { color: var(--dim); margin-left: auto; }
+.tp { color: var(--ok); font-style: normal; } .tf { color: var(--err); font-style: normal; } .ts2 { color: var(--warn); font-style: normal; }
+.tmsg { margin: 2px 0 6px 40px; padding: 6px 10px; background: #2a2325; border-left: 3px solid var(--err); border-radius: 0 6px 6px 0; color: #e8b4b8; white-space: pre-wrap; font: 12px/1.5 var(--mono); } .tmsg.skip { border-color: var(--warn); background: #2e2a20; color: #e6d7a3; }
+.tcnt { background: var(--err); color: #fff; border-radius: 8px; padding: 0 6px; font-size: 11px; } .tcnt:empty { display: none; }
+.gl .grun.pass { color: var(--ok); } .gl .grun.fail { color: var(--err); } .gl .grun.skip { color: var(--warn); }
+.testbtn .ic { color: #8fd0a0; }
+
+/* 단계 제목 · 아직 순서가 아닌 미션은 조금 흐리게 */
+.stage { margin: 12px 12px 2px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--accent2); } .stage:first-of-type { margin-top: 4px; }
+.mi.upcoming { opacity: .62; } .mi.upcoming:hover { opacity: 1; }

@@ -9,7 +9,7 @@ function boot(files) {
   const items = [], log = (lvl, logger, msg, extra) => items.push({ k: 'log', ts: stamp(), lvl, pid: 14721, thread: 'main', logger, msg, ...extra });
   const raw = (text, cls) => items.push({ k: 'raw', text, cls });
   const model = buildModel(files);
-  const probs = javaProblems(model);
+  const probs = javaProblems(model).filter(p => !/(^|\/)src\/test\//.test(p.path));   // bootRun 은 테스트 소스를 컴파일하지 않는다
   if (probs.length) return { ok: false, build: true, problems: probs, items, model };
   const rb = resolveBeans(model);
   const cfg = readConfig(files);

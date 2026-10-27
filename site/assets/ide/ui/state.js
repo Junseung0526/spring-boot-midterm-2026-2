@@ -8,7 +8,7 @@ const bus = { on(e, f) { (listeners[e] ||= []).push(f); }, emit(e, a) { (listene
 
 const state = {
   files: {}, open: [], active: null, done: new Set(),
-  session: { started: false, responses: [], aspectHit: false },
+  session: { started: false, responses: [], aspectHit: false, txHit: false, tests: null },
   server: { running: false, ctx: null, dirty: false },
   problems: [],
 };
@@ -56,7 +56,7 @@ function setContent(p, text) {
 }
 function resetProject() {
   state.files = { ...IDE.STARTER }; state.open = defaultOpen(); state.active = state.open[0];
-  state.done = new Set(); state.session = { started: false, responses: [], aspectHit: false };
+  state.done = new Set(); state.session = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
   save(); bus.emit('reset');
 }
 

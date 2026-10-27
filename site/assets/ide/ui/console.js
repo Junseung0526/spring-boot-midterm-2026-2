@@ -7,14 +7,14 @@ const { esc } = highlight;
 
 function create(host, hooks) {
   host.innerHTML = `
-    <div class="bt"><button data-t="run" class="on"><svg class="ic"><use href="#i-term"/></svg>Run</button><button data-t="problems"><svg class="ic"><use href="#i-warn"/></svg>Problems <b class="cnt" id="pcnt"></b></button><button data-t="http"><svg class="ic"><use href="#i-http"/></svg>HTTP Response</button><span class="sp"></span><button data-clear title="지우기">Clear</button></div>
-    <div class="bp" data-p="run"></div><div class="bp" data-p="problems" hidden></div><div class="bp" data-p="http" hidden></div>`;
+    <div class="bt"><button data-t="run" class="on"><svg class="ic"><use href="#i-term"/></svg>Run</button><button data-t="tests"><svg class="ic"><use href="#i-test"/></svg>Tests <b class="tcnt" id="tcnt"></b></button><button data-t="problems"><svg class="ic"><use href="#i-warn"/></svg>Problems <b class="cnt" id="pcnt"></b></button><button data-t="http"><svg class="ic"><use href="#i-http"/></svg>HTTP Response</button><span class="sp"></span><button data-clear title="지우기">Clear</button></div>
+    <div class="bp" data-p="run"></div><div class="bp" data-p="tests" hidden></div><div class="bp" data-p="problems" hidden></div><div class="bp" data-p="http" hidden></div>`;
   const pane = n => host.querySelector(`[data-p="${n}"]`), runP = pane('run');
   const show = n => { bus.emit('console'); host.querySelectorAll('.bt button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === n)); host.querySelectorAll('.bp').forEach(p => { p.hidden = p.dataset.p !== n; }); };
   host.querySelector('.bt').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.t) show(b.dataset.t);
-    if (b.hasAttribute('data-clear')) { runP.innerHTML = ''; pane('http').innerHTML = ''; }
+    if (b.hasAttribute('data-clear')) { runP.innerHTML = ''; pane('http').innerHTML = ''; pane('tests').innerHTML = ''; }
   });
   const scroll = () => { runP.scrollTop = runP.scrollHeight; };
 
@@ -49,8 +49,27 @@ function create(host, hooks) {
     pane('http').insertAdjacentHTML('afterbegin', `<div class="rblock"><div class="rq">${esc(req.method)} ${esc(req.url)}</div>${head}${body}${foot}</div>`);
     show('http');
   }
+  /* 테스트 결과: 요약 + 클래스별 트리, 실패는 메시지 펼침 */
+  function showTests(r) {
+    const tp = pane('tests');
+    if (r.build) { tp.innerHTML = `<div class="ln err">❌ 테스트 컴파일 실패 — ${r.problems.length}개 오류 (Problems 탭 참고)</div>`; host.querySelector('#tcnt').textContent = ''; show('tests'); return; }
+    const sm = r.summary, total = sm.pass + sm.fail + sm.skip;
+    const byCls = {}; r.results.forEach(x => (byCls[x.cls] ||= []).push(x));
+    const icon = st => ({ pass: '<i class="tp">✔</i>', fail: '<i class="tf">✖</i>', skip: '<i class="ts2">⚠</i>' }[st]);
+    tp.innerHTML = `<div class="tsum ${sm.fail ? 'bad' : 'good'}"><b>${sm.fail ? '✖ 실패가 있습니다' : '✔ 모든 테스트 통과'}</b> — ${total}개 중 ${sm.pass} 통과 · ${sm.fail} 실패${sm.skip ? ' · ' + sm.skip + ' 실행불가' : ''} <small>${r.ms} ms</small>
+        <button class="tgo" data-tests-run>▶ 전체 다시 실행</button></div>` +
+      Object.entries(byCls).map(([cls, list]) => { const f = list.some(x => x.status === 'fail'), k = list.every(x => x.status === 'pass');
+        return `<div class="tcls"><div class="tch">${f ? '<i class="tf">✖</i>' : k ? '<i class="tp">✔</i>' : '<i class="ts2">⚠</i>'}<b>${esc(cls)}</b> <small>${list.filter(x => x.status === 'pass').length}/${list.length}</small></div>` +
+        list.map(x => `<div class="tm ${x.status}" data-path="${x.path}" data-line="${x.line}">${icon(x.status)}<span>${esc(x.display || x.method)}</span><small>${esc(x.method)}() · ${x.ms} ms</small></div>${x.msg ? `<pre class="tmsg ${x.status}">${esc(x.msg)}</pre>` : ''}`).join('') + '</div>'; }).join('');
+    host.querySelector('#tcnt').textContent = sm.fail ? sm.fail : '';
+    show('tests');
+  }
+  pane('tests').addEventListener('click', e => {
+    if (e.target.closest('[data-tests-run]')) { hooks.onRunTests?.(); return; }
+    const r = e.target.closest('.tm'); if (r) hooks.onGoto?.(r.dataset.path, +r.dataset.line);
+  });
   bus.on('problems', () => showProblems(state.problems));
-  return { show, line, item, stream, clear() { runP.innerHTML = ''; }, showProblems, showResponse };
+  return { show, line, item, stream, clear() { runP.innerHTML = ''; }, showProblems, showResponse, showTests };
 }
 Object.assign(IDE, { Console: { create } });
 })();

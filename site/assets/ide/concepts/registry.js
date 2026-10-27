@@ -11,6 +11,7 @@ const LIST = [
   { id: 'life', kind: 'scene', svg: 'life', steps: 'life', title: '빈 생명주기', icon: '↻', group: '핵심 개념', tag: 'IoC/DI', practice: { file: 'src/main/java/com/example/blog/aop/LogAspect.java', label: 'LogAspect 를 보며 프록시가 만들어지는 시점 떠올리기' } },
   { id: 'aop', kind: 'scene', svg: 'aop', steps: 'aop', title: 'AOP', icon: '◈', group: '핵심 개념', tag: 'AOP', practice: { file: 'src/main/java/com/example/blog/aop/LogAspect.java', label: '미션 6 — LogAspect 를 동작시키고 콘솔 로그 확인' } },
   { id: 'psa', kind: 'scene', svg: 'psa', steps: 'psa', title: 'PSA', icon: '⇋', group: '핵심 개념', tag: 'PSA', practice: { file: 'src/main/java/com/example/blog/service/PostService.java', label: 'PostService 에 @Transactional 을 붙여 보기' } },
+  { id: 'testing', kind: 'scene', svg: 'testing', steps: 'testing', title: '테스트 (슬라이스)', icon: '✓', group: '핵심 개념', tag: 'Boot 4', practice: { file: 'src/test/java/com/example/blog/controller/PostControllerTest.java', label: '미션 9·10 — 테스트를 초록불로 만들기 (🧪 버튼)' } },
   { id: 'boot', kind: 'scene', svg: 'boot', steps: 'boot', title: '부트 시작 · 자동 설정', icon: '⏻', group: '흐름', tag: 'IoC/DI', practice: { file: 'src/main/java/com/example/blog/BlogApplication.java', label: 'BlogApplication 의 @SpringBootApplication 확인' } },
   { id: 'flow', kind: 'scene', svg: 'flow', steps: 'flow', title: 'POST 계층 흐름', icon: '⇉', group: '흐름', tag: 'MVC', practice: { file: 'src/main/java/com/example/blog/controller/PostController.java', label: '미션 3·4 — POST 를 201 + 검증 400 으로 만들기' } },
   { id: 'boot4', kind: 'doc', doc: 'boot4', title: 'Boot 4 변경점', icon: '4', group: '정리' },

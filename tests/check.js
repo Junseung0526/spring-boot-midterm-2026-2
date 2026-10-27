@@ -26,7 +26,7 @@ ok(Object.values(declared).every(c => c === 1), '데이터 상수가 여러 파�
 const load = rel => vm.runInContext(fs.readFileSync(path.join(root, rel), 'utf8').replace(/^const (\w+)/gm, 'var $1') + ';', ctx);
 ['data/annotations.js', 'data/steps.js', 'data/exam.js'].forEach(load);
 vm.runInContext('globalThis.IDE = globalThis.IDE || {}; var IDE = globalThis.IDE;', ctx);
-['ide/concepts/registry.js', 'ide/concepts/svg/diagrams.js', 'ide/concepts/svg/ioc-psa.js'].forEach(run);
+['ide/concepts/registry.js', 'ide/concepts/svg/diagrams.js', 'ide/concepts/svg/ioc-psa.js', 'ide/concepts/svg/testing.js'].forEach(run);
 const IDE = ctx.IDE, STEPS = ctx.STEPS, EXAM = ctx.EXAM, ANN = ctx.ANN;
 
 ok(ANN.length >= 70, `어노테이션 ${ANN.length}개`);
@@ -46,22 +46,34 @@ for (const c of IDE.concepts.LIST.filter(c => c.kind === 'scene')) {
   ok(!c.practice || fs.existsSync(path.join(__dirname, '..', 'site', 'x')) || true, `[${c.id}] 관련 실습 지정`);
 }
 
-/* 4) 실습 엔진 */
+/* 4) 실습 엔진 + 테스트 러너 + 10개 미션 커리큘럼 */
 globalThis.IDE = {};
-const eng = {};
-const g = Object.assign(globalThis, { IDE: {} });
-for (const f of ['core/constants', 'core/util', 'core/parser', 'core/model', 'core/compile', 'core/beans', 'core/web', 'core/boot', 'core/http', 'project/starter', 'project/solutions', 'project/missions']) require(path.join(root, 'ide', f + '.js'));
-const E = globalThis.IDE;
+for (const f of ['core/constants', 'core/util', 'core/parser', 'core/model', 'core/compile', 'core/beans', 'core/web', 'core/boot', 'core/http', 'core/minijava', 'core/testrun', 'project/starter', 'project/solutions', 'project/missions']) require(path.join(root, 'ide', f + '.js'));
+const E = globalThis.IDE, J = E.JAVA_ROOT, TT = E.TEST_ROOT;
 const starter = E.boot({ ...E.STARTER });
 ok(!starter.ok && /could not be found/.test(starter.failure?.desc || ''), '시작 코드: NoSuchBean 으로 기동 실패');
-const sol = E.boot({ ...E.STARTER, ...E.SOLUTIONS });
-ok(sol.ok, '정답 코드: 기동 성공');
-if (sol.ok) {
-  const st = { started: true, responses: [], aspectHit: false };
-  const send = (m, u, b) => { const x = E.handle(sol.ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b }); st.responses.push({ method: m, path: u, status: x.status, body: x.body }); if (x.aspectHit) st.aspectHit = true; return x; };
-  send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}'); send('DELETE', '/api/posts/1');
+const t0 = E.runTests({ ...E.STARTER });
+ok(!t0.build && t0.summary.pass === 7 && t0.summary.fail === 7, `시작 코드의 테스트: 7 통과 / 7 실패 (실제 ${t0.summary && t0.summary.pass}/${t0.summary && t0.summary.fail})`);
+const sol = { ...E.STARTER, ...E.SOLUTIONS };
+const boot = E.boot(sol);
+ok(boot.ok, '정답 코드: 기동 성공');
+const t1 = E.runTests(sol);
+ok(!t1.build && t1.summary.pass === 14 && t1.summary.fail === 0 && t1.summary.skip === 0, `정답 코드의 테스트 14/14 통과 (실제 ${t1.summary && t1.summary.pass}/${t1.results.length})`);
+if (boot.ok) {
+  const st = { started: true, responses: [], aspectHit: false, txHit: false, tests: t1 };
+  const send = (m, u, b) => { const x = E.handle(boot.ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b }); st.responses.push({ method: m, path: u, status: x.status, body: x.body }); if (x.aspectHit) st.aspectHit = true; if (x.txHit) st.txHit = true; return x; };
+  send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}');
+  send('PUT', '/api/posts/1', '{"title":"수정","content":"x"}'); send('GET', '/api/posts/1'); send('DELETE', '/api/posts/2');
+  ok(E.MISSIONS.length === 10, `미션 ${E.MISSIONS.length}개`);
   E.MISSIONS.forEach(m => ok(m.check(st), `미션 ${m.id} (${m.title}) 통과`));
-  E.MISSIONS.forEach(m => { const t = m.target, txt = (E.SOLUTIONS[t.file] || E.STARTER[t.file] || ''); ok((E.STARTER[t.file] || '').includes(t.find), `미션 ${m.id} 위치 마커 "${t.find}" 가 시작 코드에 있음`); });
+  E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
 }
+/* 순서 자유: 아무 미션도 다른 미션을 요구하지 않는다 (앱 기동 m1 제외) */
+const solo = { started: true, responses: [], aspectHit: true, txHit: false, tests: null };
+ok(E.MISSIONS.find(m => m.id === 'm8').check(solo) && !E.MISSIONS.find(m => m.id === 'm7').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');
+/* 직접 만든 새 파일도 실행된다 */
+const own = { ...sol, [J + 'controller/HelloController.java']: `package com.example.blog.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\n@RestController\n@RequestMapping("/api/hellos")\npublic class HelloController {\n\n    @GetMapping\n    public String hello() {\n        return "hello";\n    }\n}\n` };
+const ob = E.boot(own); ok(ob.ok, '직접 만든 컨트롤러 파일을 포함해도 기동');
+if (ob.ok) { const x = E.handle(ob.ctx, { method: 'GET', url: 'http://localhost:8080/api/hellos', headers: {}, body: '' }); ok(x.status === 200 && x.body === 'hello', '직접 만든 GET /api/hellos → 200 "hello"'); }
 console.log(fail ? `\n실패 ${fail}건` : '\n모두 통과');
 process.exit(fail ? 1 : 0);

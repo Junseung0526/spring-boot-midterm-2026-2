@@ -45,7 +45,7 @@ function handle(ctx, req) {
   const logs = [], raw = (text, cls) => logs.push({ k: 'raw', text, cls });
   const log = (lvl, logger, msg, extra) => logs.push({ k: 'log', ts: stamp(), lvl, pid: 14721, thread: 'nio-8080-exec-1', logger, msg, ...extra });
   const model = ctx.model, web = ctx.web;
-  const res = { status: 200, headers: { 'Content-Type': 'application/json' }, body: '', logs, aspectHit: false };
+  const res = { status: 200, headers: { 'Content-Type': 'application/json' }, body: '', logs, aspectHit: false, txHit: false };
   let u; try { u = new URL(req.url); } catch { return { ...res, status: 0, error: `java.net.MalformedURLException: no protocol: ${req.url}` }; }
   if (!['localhost', '127.0.0.1'].includes(u.hostname) || +(u.port || 80) !== ctx.port) return { ...res, status: 0, error: `java.net.ConnectException: Connection refused: connect (${u.host})` };
   if (ctx.first) { ctx.first = false; log('INFO', 'o.a.c.c.C.[Tomcat].[localhost].[/]', 'Initializing Spring DispatcherServlet \'dispatcherServlet\''); log('INFO', 'o.s.web.servlet.DispatcherServlet', 'Completed initialization in 1 ms'); }
@@ -130,7 +130,19 @@ function handle(ctx, req) {
     svcBean = (dep && dep.bean) || ctx.rb.beans.find(b => b.type === simple(f.type)) || svcBean;
     if (svcBean) break;
   }
-  const stub = !svcBean;
+  // @WebMvcTest 슬라이스: 컨트롤러가 호출하는 서비스가 @MockitoBean 이면 stub 으로 응답한다
+  let mockHit = null;
+  if (ctx.mock) {
+    for (const c of body.matchAll(/\b([a-z]\w*)\.(\w+)\s*\(/g)) {
+      const f = ctrl.fields.find(x => x.name === c[1]); if (!f || !ctx.mock.has(simple(f.type))) continue;
+      let d = 1, k = c.index + c[0].length; const st = k; for (; k < body.length && d > 0; k++) { if (body[k] === '(') d++; else if (body[k] === ')') d--; }
+      const vals = new Map();
+      mth.params.forEach(p => { if (hasAnn(p, 'PathVariable')) vals.set(p.name, id); else if (hasAnn(p, 'RequestParam')) vals.set(p.name, keyword); else if (hasAnn(p, 'RequestBody')) vals.set(p.name, { __t: simple(p.type), f: { ...(dto || {}) }, T: dtoType }); });
+      const argVals = splitTop(body.slice(st, k - 1)).map(a => { a = a.trim(); return vals.has(a) ? vals.get(a) : /^-?\d+L?$/.test(a) ? parseInt(a, 10) : /^"[^"]*"$/.test(a) ? a.slice(1, -1) : { __any: true }; });
+      mockHit = { type: simple(f.type), method: c[2], args: argVals }; break;
+    }
+  }
+  const stub = !svcBean && !mockHit;
 
   // AOP + 트랜잭션
   const matchesAdv = (adv, bean) => adv.prefix && (fqn(bean.t) + '.').startsWith(adv.prefix);
@@ -148,19 +160,23 @@ function handle(ctx, req) {
   const sigText = svcBean ? `${svcBean.t.name}.${svcMethod}(..)` : '';
   const txOn = svcBean && (hasAnn(svcBean.t, 'Transactional') || (svcBean.t.methods.find(m => m.name === svcMethod) && hasAnn(svcBean.t.methods.find(m => m.name === svcMethod), 'Transactional')));
   if (advs.length) res.aspectHit = true;
+  if (txOn) res.txHit = true;
   const around = advs.find(a => a.kind === 'Around');
   advs.filter(a => a.kind === 'Around').forEach(a => emit(a, advText(a, 'before'), sigText));
   advs.filter(a => a.kind === 'Before').forEach(a => emit(a, advText(a, 'all'), sigText));
   if (around && !/\bproceed\s*\(/.test(around.method.body || '')) proceeded = false;
   if (txOn) log('DEBUG', 'o.s.orm.jpa.JpaTransactionManager', `Creating new transaction with name [${fqn(svcBean.t)}.${svcMethod}]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT`, { dim: true });
 
+  const rt0 = mth.retType;
   // 비즈니스(표준 CRUD 의미)
   const db = ctx.db, E = db.entity;
   const sql = s => { if (ctx.cfg.showSql) raw('Hibernate: ' + s, 'sql'); };
   const tn = E ? E._table || decap(E.name) : 'posts';
   const svcText = svcBean ? (svcBean.t.unit.text || '') : '';
   let result = null, ex = null;
-  if (stub || !proceeded) result = null;
+  if (mockHit) { const rv = ctx.mock.invoke(mockHit.type, mockHit.method, mockHit.args); result = (rv && rv.__opt) ? rv.v : rv; if (result && result.f) result = { ...result.f }; else if (Array.isArray(result)) result = result.map(x => (x && x.f ? { ...x.f } : x)); }
+  else if (stub && /^\s*String\s*$/.test(rt0) && /\breturn\s+"([^"]*)"\s*;/.test(body)) result = { title: /\breturn\s+"([^"]*)"\s*;/.exec(body)[1] };   // 직접 짠 간단한 컨트롤러: 문자열 리터럴 반환
+  else if (stub || !proceeded) result = null;
   else if (method === 'GET' && id === null && keyword !== null) { sql(`select p1_0.id,p1_0.content,p1_0.title from ${tn} p1_0 where p1_0.title like ? escape '\\'`); result = db.rows.filter(r => String(r.title).includes(keyword)); }
   else if (method === 'GET' && id === null) { sql(`select p1_0.id,p1_0.content,p1_0.title from ${tn} p1_0`); result = db.rows.slice(); }
   else if (id !== null) {

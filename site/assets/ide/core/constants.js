@@ -31,8 +31,14 @@ const ANN_PKG = {
   RequiredArgsConstructor: 'lombok', Getter: 'lombok', Setter: 'lombok', Data: 'lombok', AllArgsConstructor: 'lombok',
   NoArgsConstructor: 'lombok', Slf4j: 'lombok.extern.slf4j',
   PostConstruct: 'jakarta.annotation', PreDestroy: 'jakarta.annotation',
+  Test: 'org.junit.jupiter.api', DisplayName: 'org.junit.jupiter.api', BeforeEach: 'org.junit.jupiter.api', AfterEach: 'org.junit.jupiter.api',
+  ExtendWith: 'org.junit.jupiter.api.extension', Mock: 'org.mockito', InjectMocks: 'org.mockito',
+  SpringBootTest: 'org.springframework.boot.test.context',
+  WebMvcTest: 'org.springframework.boot.webmvc.test.autoconfigure', AutoConfigureMockMvc: 'org.springframework.boot.webmvc.test.autoconfigure',
+  DataJpaTest: 'org.springframework.boot.data.jpa.test.autoconfigure',
+  MockitoBean: 'org.springframework.test.context.bean.override.mockito', MockitoSpyBean: 'org.springframework.test.context.bean.override.mockito',
 };
-const TYPE_PKG = { HttpStatus: 'org.springframework.http', ResponseEntity: 'org.springframework.http', List: 'java.util',
+const TYPE_PKG = { MockMvc: 'org.springframework.test.web.servlet', MediaType: 'org.springframework.http', MockitoExtension: 'org.mockito.junit.jupiter', HttpStatus: 'org.springframework.http', ResponseEntity: 'org.springframework.http', List: 'java.util',
   Optional: 'java.util', Map: 'java.util', GenerationType: 'jakarta.persistence', ProceedingJoinPoint: 'org.aspectj.lang',
   JoinPoint: 'org.aspectj.lang' };
 const JAVA_LANG_ANN = new Set(['Override', 'FunctionalInterface', 'SuppressWarnings', 'Deprecated', 'SafeVarargs']);

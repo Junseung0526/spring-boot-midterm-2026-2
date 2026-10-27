@@ -59,10 +59,26 @@ function create(con) {
     if (r.status) {
       state.session.responses.push({ method: req.method, path: new URL(req.url).pathname, status: r.status, body: r.body });
       if (r.aspectHit) state.session.aspectHit = true;
+      if (r.txHit) state.session.txHit = true;
     }
     bus.emit('session');
   }
-  return { run, stop, send };
+  /* 테스트 실행: only = { cls, method } 이면 해당 클래스/메서드만 (IntelliJ 거터 ▶) */
+  async function runTests(only) {
+    con.show('tests'); bus.emit('testing', true);
+    await new Promise(r => setTimeout(r, 160));
+    const r = IDE.runTests({ ...state.files }, only);
+    if (r.build) { state.problems = r.problems; bus.emit('problems'); con.showTests(r); con.show('problems'); bus.emit('testing', false); return r; }
+    // 일부만 실행했다면 이전 결과에 합쳐서 전체 현황을 유지
+    if (only && state.session.tests && !state.session.tests.build) {
+      const keep = state.session.tests.results.filter(x => !r.results.some(n => n.cls === x.cls && n.method === x.method));
+      r.results = [...keep, ...r.results];
+      r.summary = { pass: 0, fail: 0, skip: 0 }; r.results.forEach(x => { r.summary[x.status]++; });
+    }
+    state.session.tests = r; con.showTests(r); bus.emit('tests', r); bus.emit('session'); bus.emit('testing', false);
+    return r;
+  }
+  return { run, stop, send, runTests };
 }
 Object.assign(IDE, { Runner: { create, parseRequest } });
 })();

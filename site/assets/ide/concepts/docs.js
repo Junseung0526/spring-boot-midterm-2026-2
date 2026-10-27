@@ -3,7 +3,7 @@
 'use strict';
 const IDE = (globalThis.IDE ??= {});
 IDE.docs = {
-welcome: `<h1>Spring Boot 4 중간고사 — IntelliJ 실습실</h1>
+welcome: `<h1>스프링부트4 실습</h1>
 <p class="lead">왼쪽 <b>Concepts</b> 에서 개념을 고르면 <b>코드가 한 줄씩 타이핑되고 그림이 움직이며</b> 동작 원리를 보여 줍니다.
 개념을 이해했다면 <b>Project</b> 의 코드를 직접 고쳐 보고 ▶ Run 으로 실행해 보세요.</p>
 <p><a class="cta" data-open="concept:mvcpattern">▶ 애니메이션으로 배우기 시작</a> <span class="muted">열자마자 자동으로 재생됩니다 · 일시정지 / 이전 / 다음 버튼으로 단계 이동</span></p>
@@ -15,12 +15,13 @@ welcome: `<h1>Spring Boot 4 중간고사 — IntelliJ 실습실</h1>
   <a data-open="concept:life"><i>4</i><b>빈 생명주기</b><span>생성 → 주입 → 초기화 → 소멸</span></a>
   <a data-open="concept:aop"><i>5</i><b>AOP</b><span>프록시와 어드바이스 실행 순서</span></a>
   <a data-open="concept:psa"><i>6</i><b>PSA</b><span>구현체를 갈아끼우는 추상화</span></a>
-  <a data-open="concept:boot"><i>7</i><b>부트 시작 · 자동 설정</b><span>main() 부터 내장 Tomcat 까지</span></a>
-  <a data-open="concept:flow"><i>8</i><b>POST 계층 흐름</b><span>Controller → Service → Repository</span></a>
+  <a data-open="concept:testing"><i>7</i><b>테스트 (슬라이스)</b><span>@WebMvcTest · @MockitoBean · @DataJpaTest</span></a>
+  <a data-open="concept:boot"><i>8</i><b>부트 시작 · 자동 설정</b><span>main() 부터 내장 Tomcat 까지</span></a>
+  <a data-open="concept:flow"><i>9</i><b>POST 계층 흐름</b><span>Controller → Service → Repository</span></a>
 </div>
 <h3>직접 해 보기</h3>
 <div class="wcards">
-  <a data-open="src/main/java/com/example/blog/service/PostService.java" class="act"><i>▶</i><b>미션 시작</b><span>오른쪽 Tasks 의 6개 미션을 해결하세요</span></a>
+  <a data-open="src/main/java/com/example/blog/service/PostService.java" class="act"><i>▶</i><b>미션 시작</b><span>오른쪽 Tasks 의 10개 미션 — 순서대로 해도, 마음대로 해도 돼요</span></a>
   <a data-memo="ann" class="act"><i>🧠</i><b>어노테이션 암기</b><span>카드 · 객관식 · 빈칸 입력 · 목록</span></a>
   <a data-memo="exam" class="act"><i>📝</i><b>모의고사</b><span>오답노트 자동 저장</span></a>
 </div>
