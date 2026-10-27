@@ -109,7 +109,7 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    // TODO 미션 7: 클래스에 @Transactional(readOnly = true), 쓰기 메서드(create/update/delete)에는 @Transactional 을 붙이세요
+    // TODO 미션 9: 클래스에 @Transactional(readOnly = true), 쓰기 메서드(create/update/delete)에는 @Transactional 을 붙이세요
     public List<PostResponse> findAll() {
         return postRepository.findAll().stream()
                 .map(PostResponse::from)
@@ -134,24 +134,14 @@ public class PostService {
                 .orElse(null);
     }
 
-    // TODO 미션 6: 컨트롤러의 DELETE 가 호출할 delete(Long id) 메서드를 여기에 추가하세요
+    // TODO 미션 8: 컨트롤러의 DELETE 가 호출할 delete(Long id) 메서드를 여기에 추가하세요
 }
 `,
 [J + 'controller/PostController.java']: `package com.example.blog.controller;
 
-import com.example.blog.dto.PostRequest;
-import com.example.blog.dto.PostResponse;
 import com.example.blog.service.PostService;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -163,29 +153,20 @@ public class PostController {
         this.postService = postService;
     }
 
-    @GetMapping
-    public List<PostResponse> list() {
-        return postService.findAll();
-    }
+    // TODO 미션 2: 전체 목록을 돌려주는 GET /api/posts 를 만드세요
+    //   메서드 list() · 반환 List<PostResponse> · 서비스의 findAll() 을 호출
 
-    @GetMapping("/{id}")
-    public PostResponse get(@PathVariable Long id) {
-        return postService.find(id);
-    }
+    // TODO 미션 3: 한 건을 돌려주는 GET /api/posts/{id} 를 만드세요
+    //   메서드 get(id) · 반환 PostResponse · 서비스의 find(id) 를 호출
 
-    // TODO 미션 3: 생성에 성공하면 200 이 아니라 201 Created 로 응답하세요
-    // TODO 미션 4: 잘못된 입력(빈 제목)은 400 Bad Request 가 되도록 검증을 요청하세요
-    @PostMapping
-    public PostResponse create(@RequestBody PostRequest request) {
-        return postService.create(request);
-    }
+    // TODO 미션 4: 새 글을 만드는 POST /api/posts 를 만드세요 (이어서 5: 201 응답, 6: 입력 검증)
+    //   메서드 create(request) · 요청 본문은 PostRequest · 서비스의 create(request) 를 호출
 
-    @PutMapping("/{id}")
-    public PostResponse update(@PathVariable Long id, @Valid @RequestBody PostRequest request) {
-        return postService.update(id, request);
-    }
+    // TODO 미션 7: 글을 고치는 PUT /api/posts/{id} 를 만드세요 (입력 검증 포함)
+    //   메서드 update(id, request) · 서비스의 update(id, request) 를 호출
 
-    // TODO 미션 6: DELETE /api/posts/{id} 를 만들어 204 No Content 로 응답하세요 (서비스에 delete 메서드도 필요)
+    // TODO 미션 8: 글을 지우는 DELETE /api/posts/{id} 를 만들어 204 No Content 로 응답하세요
+    //   서비스에 delete(id) 를 먼저 만들어야 합니다
 }
 `,
 [J + 'aop/LogAspect.java']: `package com.example.blog.aop;
@@ -195,7 +176,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 
-// TODO 미션 8: 이 Aspect 가 실제로 동작하게 만드세요 (스프링 빈으로 등록)
+// TODO 미션 10: 이 Aspect 가 실제로 동작하게 만드세요 (스프링 빈으로 등록)
 @Slf4j
 @Aspect
 public class LogAspect {
@@ -266,7 +247,7 @@ class PostControllerTest {
     @Autowired
     MockMvc mockMvc;
 
-    // TODO 미션 9: PostService 를 가짜(mock) 빈으로 등록하세요 — @WebMvcTest 는 웹 계층만 띄웁니다
+    // TODO 미션 11: PostService 를 가짜(mock) 빈으로 등록하세요 — @WebMvcTest 는 웹 계층만 띄웁니다
     PostService postService;
 
     @Test
@@ -466,13 +447,13 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 `,
-'requests.http': `### 1. 게시글 목록 조회
+'requests.http': `### 1. 게시글 목록 조회 — 200 + JSON 배열  (미션 2)
 GET http://localhost:8080/api/posts
 
-### 2. 게시글 단건 조회 — 200 + JSON  (미션 2)
+### 2. 게시글 단건 조회 — 200 + JSON  (미션 3)
 GET http://localhost:8080/api/posts/1
 
-### 3. 게시글 생성 — 성공하면 201 Created  (미션 3)
+### 3. 게시글 생성 — 만들어진 글 JSON, 그다음 201 Created  (미션 4 · 5)
 POST http://localhost:8080/api/posts
 Content-Type: application/json
 
@@ -481,7 +462,7 @@ Content-Type: application/json
   "content": "IntelliJ 처럼 실습 중"
 }
 
-### 4. 검증 실패 — 빈 제목이면 400  (미션 4)
+### 4. 검증 실패 — 빈 제목이면 400  (미션 6)
 POST http://localhost:8080/api/posts
 Content-Type: application/json
 
@@ -490,7 +471,7 @@ Content-Type: application/json
   "content": "내용"
 }
 
-### 5. 게시글 수정 — 200 OK + 바뀐 JSON, 다시 2번을 실행해 보세요  (미션 5)
+### 5. 게시글 수정 — 200 OK + 바뀐 JSON, 다시 2번을 실행해 보세요  (미션 7)
 PUT http://localhost:8080/api/posts/1
 Content-Type: application/json
 
@@ -499,7 +480,7 @@ Content-Type: application/json
   "content": "수정한 내용"
 }
 
-### 6. 게시글 삭제 — 204 No Content  (미션 6)
+### 6. 게시글 삭제 — 204 No Content  (미션 8)
 DELETE http://localhost:8080/api/posts/1
 
 ### 7. 보너스: 숫자가 아닌 id — 400

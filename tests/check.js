@@ -62,9 +62,9 @@ ok(!t1.build && t1.summary.pass === 14 && t1.summary.fail === 0 && t1.summary.sk
 if (boot.ok) {
   const st = { started: true, responses: [], aspectHit: false, txHit: false, tests: t1 };
   const send = (m, u, b) => { const x = E.handle(boot.ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b }); st.responses.push({ method: m, path: u, status: x.status, body: x.body }); if (x.aspectHit) st.aspectHit = true; if (x.txHit) st.txHit = true; return x; };
-  send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}');
+  send('GET', '/api/posts'); send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}');
   send('PUT', '/api/posts/1', '{"title":"수정","content":"x"}'); send('GET', '/api/posts/1'); send('DELETE', '/api/posts/2');
-  ok(E.MISSIONS.length === 10, `미션 ${E.MISSIONS.length}개`);
+  ok(E.MISSIONS.length === 12, `미션 ${E.MISSIONS.length}개`);
   E.MISSIONS.forEach(m => ok(m.check(st), `미션 ${m.id} (${m.title}) 통과`));
   E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
 }
@@ -78,11 +78,11 @@ ok(/import/.test(E.MISSIONS[0].diagnose(dctx(noImport))[0]), '진단: @Service �
 ok(/Run/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }))[0]), '진단: 코드가 맞고 앱이 꺼져 있으면 Run 안내');
 ok(/Rerun/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }, { server: { running: true, dirty: true } }))[0]), '진단: 앱 실행 중 코드가 바뀌면 Rerun 안내');
 const onlySvc = { ...E.STARTER, [svcPath]: E.SOLUTIONS[svcPath] };
-ok(E.MISSIONS[9].diagnose(dctx(onlySvc, { tests: E.runTests(onlySvc) })).some(x => /미션 3/.test(x)), '진단: 실패한 테스트를 해당 미션(예: create → 미션 3)과 연결');
+ok(E.MISSIONS[11].diagnose(dctx(onlySvc, { tests: E.runTests(onlySvc) })).some(x => /미션/.test(x)), '진단: 실패한 테스트를 해당 미션과 연결');
 
 /* 순서 자유: 아무 미션도 다른 미션을 요구하지 않는다 (앱 기동 m1 제외) */
 const solo = { started: true, responses: [], aspectHit: true, txHit: false, tests: null };
-ok(E.MISSIONS.find(m => m.id === 'm8').check(solo) && !E.MISSIONS.find(m => m.id === 'm7').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');
+ok(E.MISSIONS.find(m => m.id === 'm10').check(solo) && !E.MISSIONS.find(m => m.id === 'm9').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');
 /* 직접 만든 새 파일도 실행된다 */
 const own = { ...sol, [J + 'controller/HelloController.java']: `package com.example.blog.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\n@RestController\n@RequestMapping("/api/hellos")\npublic class HelloController {\n\n    @GetMapping\n    public String hello() {\n        return "hello";\n    }\n}\n` };
 const ob = E.boot(own); ok(ob.ok, '직접 만든 컨트롤러 파일을 포함해도 기동');
