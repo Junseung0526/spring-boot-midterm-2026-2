@@ -1,5 +1,5 @@
 /* css/concept.css — 개념 탭(코드 타이핑 + SVG 애니메이션 + 문서). 색상은 theme.css 변수를 따른다 */
-#concept { overflow: auto; background: var(--editor); min-height: 0; }
+#concept { overflow: auto; background: var(--editor); min-height: 0; container-type: inline-size; container-name: concept; }
 #concept[hidden] { display: none; }
 /* 위: 다이어그램 전체 폭 / 아래: 설명 카드 + 타이핑 코드 */
 .cp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding: 16px; align-content: start; }
@@ -35,9 +35,10 @@
 .cp svg .sn.on .box { stroke: var(--warn); stroke-width: 3; } .cp svg .sn.on .edge { stroke: var(--warn); stroke-width: 3; marker-end: url(#arO); }
 .cp svg .sn.on .badge { fill: var(--warn); } .cp svg .sn.on .bt { fill: #1e1f22; }
 .cp svg .pkt { fill: #ffd166; stroke: #fff; stroke-width: 1.5; filter: drop-shadow(0 0 4px #ffb703); }
-@media (max-width: 1100px) { .cp { grid-template-columns: 1fr; } .cp-card, .cp-code { grid-column: 1; } }
+@container concept (max-width: 820px) { .cp { grid-template-columns: 1fr; padding: 12px; } .cp-card, .cp-code { grid-column: 1; } .cp-hint { display: none; } .cp-pre { max-height: 260px; } }
+@container concept (max-width: 560px) { .cp-dots { margin-left: 0; width: 100%; } .doc { padding: 16px 14px 40px; } .wcards { grid-template-columns: 1fr 1fr; } }
 /* 문서 패널 */
-.doc { max-width: 940px; margin: 0 auto; padding: 24px 28px 60px; line-height: 1.75; }
+.doc { max-width: 940px; margin: 0 auto; padding: clamp(14px, 3vw, 28px) clamp(14px, 3vw, 28px) 60px; line-height: 1.75; } .doc h1 { font-size: clamp(20px, 2.4vw, 26px); }
 .doc h1 { font-size: 26px; color: #fff; margin: 4px 0 8px; } .doc h2 { color: #fff; } .doc h3 { color: #dfe1e5; margin-top: 1.6em; } .doc .lead { font-size: 15px; } .doc .muted { color: var(--dim); }
 .doc a { color: var(--accent2); } .doc code { background: #2f3136; padding: 1px 6px; border-radius: 4px; font: 12.5px var(--mono); color: #e8c27a; }
 .doc table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 10px 0; } .doc th, .doc td { border-bottom: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; } .doc th { color: var(--dim); background: var(--panel); }
