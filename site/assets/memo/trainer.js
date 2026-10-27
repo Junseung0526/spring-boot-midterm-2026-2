@@ -17,7 +17,7 @@ function mount(root) {
     return `<button type="button" class="chip ${A.cats.has(k) ? 'on' : ''}" data-act="cat" data-v="${k}">${v} <small>${kn}/${all.length}</small></button>`;
   }).join('')}<button type="button" class="chip ghost" data-act="allcats">전체</button>
     <label class="chk"><input type="checkbox" data-act="unk" ${A.unknownOnly ? 'checked' : ''}> 모르는 것만</label></div>`;
-  const modeBar = () => `<div class="mmodes">${[['card', '🃏 카드'], ['choice', '✅ 객관식'], ['type', '⌨️ 빈칸 입력'], ['list', '📋 전체 목록']].map(([k, l]) => `<button type="button" class="${A.mode === k ? 'on' : ''}" data-act="mode" data-v="${k}">${l}</button>`).join('')}</div>`;
+  const modeBar = () => `<div class="mmodes">${[['card', '카드'], ['choice', '객관식'], ['type', '빈칸 입력'], ['list', '전체 목록']].map(([k, l]) => `<button type="button" class="${A.mode === k ? 'on' : ''}" data-act="mode" data-v="${k}">${l}</button>`).join('')}</div>`;
 
   function cardView() {
     if (!A.order.length) return empty();
@@ -29,7 +29,7 @@ function mount(root) {
     return `<div class="cardwrap"><div class="count">${A.idx + 1} / ${A.order.length} ${known.has(a.name) ? '<span class="ok">✓ 외움</span>' : ''}</div>
       <div class="flash ${A.flip ? 'flip' : ''}" data-act="flip" tabindex="0"><div class="face front">${front}</div><div class="face back">${back}</div></div>
       <div class="cardctl"><button type="button" data-act="dont" class="bad">← 헷갈려요</button><button type="button" data-act="flip">뒤집기 (F)</button><button type="button" data-act="know" class="good">외웠어요 →</button></div>
-      <div class="cardctl sub"><button type="button" data-act="prev">이전</button><button type="button" data-act="shuf">🔀 섞기</button><button type="button" data-act="dir">앞면: ${A.dir === 'name' ? '이름 → 뜻' : '뜻 → 이름'}</button><button type="button" data-act="next">건너뛰기</button></div></div>`;
+      <div class="cardctl sub"><button type="button" data-act="prev">이전</button><button type="button" data-act="shuf">섞기</button><button type="button" data-act="dir">앞면: ${A.dir === 'name' ? '이름 → 뜻' : '뜻 → 이름'}</button><button type="button" data-act="next">건너뛰기</button></div></div>`;
   }
   function newChoice() {
     const d = deck(); if (!d.length) { A.qz = null; return; }
@@ -41,7 +41,7 @@ function mount(root) {
     if (!A.qz) newChoice(); if (!A.qz) return empty();
     const { a, opts, pick } = A.qz;
     const btns = opts.map(o => `<button type="button" class="opt mono ${pick ? (o.name === a.name ? 'right' : o.name === pick ? 'wrong' : 'dim') : ''}" data-act="pick" data-v="${o.name}" ${pick ? 'disabled' : ''}>@${o.name}</button>`).join('');
-    const res = pick ? `<div class="result ${pick === a.name ? 'ok' : 'no'}">${pick === a.name ? '정답! 🎯' : `오답 — 정답은 <b>@${a.name}</b>`}<br><small>${esc(a.desc)}</small></div><button type="button" class="primary" data-act="nextq">다음 문제 ▶</button>` : '';
+    const res = pick ? `<div class="result ${pick === a.name ? 'ok' : 'no'}">${pick === a.name ? '정답!' : `오답 — 정답은 <b>@${a.name}</b>`}<br><small>${esc(a.desc)}</small></div><button type="button" class="primary" data-act="nextq">다음 문제 ▶</button>` : '';
     return `<div class="qbox"><div class="score">점수 ${A.qzScore} / ${A.qzTotal}</div><div class="mini">${CATS[a.cat]}</div><p class="q">${esc(a.desc)}</p>${pre(blank(a))}<div class="opts">${btns}</div>${res}</div>`;
   }
   function newType() { const d = deck(); A.ty = d.length ? { a: d[Math.floor(Math.random() * d.length)], done: null, hint: false } : null; }
@@ -52,7 +52,7 @@ function mount(root) {
       <form data-act="tysubmit" class="tyform"><span class="mono">@</span><input id="tyin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="어노테이션 이름 (대소문자 무관)" ${off ? 'disabled' : ''}>
       <button type="submit" ${off ? 'disabled' : ''}>확인</button><button type="button" data-act="tyhint" ${off ? 'disabled' : ''}>힌트</button><button type="button" data-act="tyskip" ${off ? 'disabled' : ''}>모르겠음</button></form>
       ${hint ? `<div class="hint">힌트: @${a.name.slice(0, 2)}${'·'.repeat(Math.max(0, a.name.length - 2))} (${a.name.length}글자)</div>` : ''}
-      ${off ? `<div class="result ${done ? 'ok' : 'no'}">${done ? '정답! 🎯' : `오답 — 정답: <b>@${a.name}</b>`}</div><button type="button" class="primary" data-act="nextt">다음 문제 ▶</button>` : ''}</div>`;
+      ${off ? `<div class="result ${done ? 'ok' : 'no'}">${done ? '정답!' : `오답 — 정답: <b>@${a.name}</b>`}</div><button type="button" class="primary" data-act="nextt">다음 문제 ▶</button>` : ''}</div>`;
   }
   function listView() {
     const q = A.q.trim().toLowerCase();

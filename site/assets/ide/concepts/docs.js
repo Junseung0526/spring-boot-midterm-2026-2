@@ -22,8 +22,8 @@ welcome: `<h1>스프링부트4 실습</h1>
 <h3>직접 해 보기</h3>
 <div class="wcards">
   <a data-open="src/main/java/com/example/blog/service/PostService.java" class="act"><i>▶</i><b>미션 시작</b><span>오른쪽 Tasks 의 12개 미션 — CRUD 를 한 걸음씩 직접 만들어요</span></a>
-  <a data-memo="ann" class="act"><i>🧠</i><b>어노테이션 암기</b><span>카드 · 객관식 · 빈칸 입력 · 목록</span></a>
-  <a data-memo="exam" class="act"><i>📝</i><b>모의고사</b><span>오답노트 자동 저장</span></a>
+  <a data-memo="ann" class="act"><i></i><b>어노테이션 암기</b><span>카드 · 객관식 · 빈칸 입력 · 목록</span></a>
+  <a data-memo="exam" class="act"><i></i><b>모의고사</b><span>오답노트 자동 저장</span></a>
 </div>
 <p class="muted">이 환경은 브라우저에서 동작을 재현하는 <b>시뮬레이션</b>입니다. 작성한 코드가 스프링 규칙(빈 등록, 주입, 매핑, 검증, AOP)에 맞게 해석됩니다.</p>`,
 boot4: `<h2>Spring Boot 4 (Spring Framework 7) 변경점 <span class="tag">출제 가능성↑</span></h2>

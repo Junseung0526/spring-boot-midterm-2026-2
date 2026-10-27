@@ -13,7 +13,7 @@ const state = {
   problems: [],
   git: { base: {}, commits: [], pushed: 1, branch: 'main' },
   migrated: false,
-  verify: {},          // 미션별 ✅ 정답 확인 결과 { ok, msg, detail }
+  verify: {},          // 미션별 정답 확인 결과 { ok, msg, detail }
 };
 
 const isConcept = p => !!IDE.concepts?.isConcept(p);

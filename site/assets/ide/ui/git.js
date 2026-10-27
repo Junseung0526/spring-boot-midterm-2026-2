@@ -76,7 +76,7 @@ function create(host, toast) {
       if (!picked.length) { toast('커밋할 파일을 선택하세요'); return; }
       const n = picked.length; commit(picked, m); off.clear(); msg = ''; toast(`✔ Commit 완료 — ${n}개 파일 (${state.git.commits[0].id})`); return;
     }
-    if (e.target.closest('[data-push]')) { state.git.pushed = state.git.commits.length; store.save(); bus.emit('git'); toast('⬆ origin/main 으로 push 했습니다 (시뮬레이션)'); }
+    if (e.target.closest('[data-push]')) { state.git.pushed = state.git.commits.length; store.save(); bus.emit('git'); toast('origin/main 으로 push 했습니다 (시뮬레이션)'); }
   });
   host.addEventListener('input', e => { if (e.target.id === 'gmsg') msg = e.target.value; });
   ['edit', 'reset', 'git', 'session'].forEach(ev => bus.on(ev, () => { if (!host.contains(document.activeElement) || document.activeElement.tagName !== 'TEXTAREA') draw(); }));

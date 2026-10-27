@@ -8,7 +8,7 @@ let el, panes = {}, mounted = {};
 function build() {
   el = document.createElement('div'); el.id = 'memo'; el.hidden = true;
   el.innerHTML = `<div class="mwin" role="dialog" aria-modal="true" aria-label="암기와 시험">
-    <header><div class="mtabs"><button data-tab="ann">🧠 어노테이션 암기</button><button data-tab="exam">📝 모의고사</button></div>
+    <header><div class="mtabs"><button data-tab="ann">어노테이션 암기</button><button data-tab="exam">모의고사</button></div>
       <span class="mstat"></span><button class="mreset" title="진행도 초기화">초기화</button><button class="mclose" aria-label="닫기">✕</button></header>
     <div class="mpane" data-pane="ann"></div><div class="mpane" data-pane="exam"></div></div>`;
   document.body.appendChild(el);

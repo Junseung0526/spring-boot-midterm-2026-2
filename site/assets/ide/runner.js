@@ -20,7 +20,7 @@ function create(con) {
 
   async function run(opts = {}) {
     if (running) return;
-    try { await runInner(opts); } catch (e) { con.line('❌ 실행 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); state.server = { running: false, ctx: null, dirty: false }; status(); } finally { running = false; }
+    try { await runInner(opts); } catch (e) { con.line('✖ 실행 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); state.server = { running: false, ctx: null, dirty: false }; status(); } finally { running = false; }
   }
   async function runInner(opts) {
     if (state.server.running) stop(true);
@@ -30,8 +30,8 @@ function create(con) {
     await new Promise(r => setTimeout(r, 120));
     const r = IDE.boot(files);
     if (r.build) {
-      con.line(`❌ Build failed — ${r.problems.length} error${r.problems.length > 1 ? 's' : ''}`, 'err');
-      r.problems.forEach(p => con.line(`${p.path.split('/').pop()}:${p.line}  java: ${IDE.highlight.esc(p.msg)}${p.hint ? '  💡 ' + IDE.highlight.esc(p.hint) : ''}`, 'err'));
+      con.line(`✖ Build failed — ${r.problems.length} error${r.problems.length > 1 ? 's' : ''}`, 'err');
+      r.problems.forEach(p => con.line(`${p.path.split('/').pop()}:${p.line}  java: ${IDE.highlight.esc(p.msg)}${p.hint ? '  ' + IDE.highlight.esc(p.hint) : ''}`, 'err'));
       con.line('', ''); con.line('Process finished with exit code 1', 'dim');
       con.show('problems'); running = false; return status();
     }
@@ -81,7 +81,7 @@ function create(con) {
     state.session.tests = r; con.showTests(r); bus.emit('tests', r); bus.emit('session'); bus.emit('testing', false); bus.emit('graded', 'tests');
     return r;
   }
-  /* ✅ 정답 확인: 앱을 새로 실행(DB 초기화) → 필요한 요청/테스트를 자동 실행 → 그 결과만으로 채점 */
+  /* 정답 확인: 앱을 새로 실행(DB 초기화) → 필요한 요청/테스트를 자동 실행 → 그 결과만으로 채점 */
   let verifying = false;
   async function verify(m) {
     if (verifying || running) return;
@@ -89,7 +89,7 @@ function create(con) {
     const fresh = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
     const n = m.id.slice(1);
     try {
-      con.show('run'); con.line(`🔍 미션 ${n} 채점 — 앱을 새로 실행하고 필요한 ${m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행합니다`, 'hint');
+      con.show('run'); con.line(`미션 ${n} 채점 — 앱을 새로 실행하고 필요한 ${m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행합니다`, 'hint');
       if (m.auto.requests) {
         await run({ quiet: true });
         fresh.started = state.server.running;
@@ -109,15 +109,15 @@ function create(con) {
         if (!state.done.has(m.id)) { state.done.add(m.id); IDE.store.save(); }
         state.session.started = state.session.started || fresh.started; fresh.responses.forEach(r => state.session.responses.push(r));
         if (fresh.aspectHit) state.session.aspectHit = true; if (fresh.txHit) state.session.txHit = true;
-        con.line(`✅ 미션 ${n} 정답! — ${m.title}`, 'ok'); IDE.toast?.(`✅ 미션 ${n} 정답!`);
+        con.line(`✔ 미션 ${n} 정답! — ${m.title}`, 'ok'); IDE.toast?.(`미션 ${n} 정답!`);
         bus.emit('session');
       } else {
         const why = !fresh.started && m.auto.requests && m.auto.requests.length ? (state.server.running ? '' : '앱이 실행되지 않았어요 — 콘솔의 오류를 먼저 해결하세요.') : '';
         const d = (m.diagnose ? m.diagnose({ files: state.files, session: fresh, server: { running: state.server.running, dirty: false }, problems: state.problems, tests: fresh.tests }) : []).filter(Boolean);
         state.verify[m.id] = { ok: false, msg: why || d[0] || '아직 조건을 만족하지 못했어요.', detail };
-        con.line(`❌ 미션 ${n} 아직이에요 — ${state.verify[m.id].msg}`, 'err');
+        con.line(`✖ 미션 ${n} 아직이에요 — ${state.verify[m.id].msg}`, 'err');
       }
-    } catch (e) { state.verify[m.id] = { ok: false, msg: '채점 중 오류: ' + (e.message || e), detail: '' }; con.line('❌ 채점 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); }
+    } catch (e) { state.verify[m.id] = { ok: false, msg: '채점 중 오류: ' + (e.message || e), detail: '' }; con.line('✖ 채점 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); }
     finally { verifying = false; bus.emit('verified', m.id); }
   }
   return { run, stop, send, runTests, verify };

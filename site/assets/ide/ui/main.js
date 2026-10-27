@@ -68,7 +68,7 @@ bus.on('console-msg', m => con.line(IDE.highlight.esc(m.text), m.cls));
 bus.on('graded', kind => setTimeout(() => {
   const cur = IDE.MISSIONS.find(m => !state.done.has(m.id)); if (!cur) return;
   const d = (cur.diagnose ? cur.diagnose({ files: state.files, session: state.session, server: state.server, problems: state.problems, tests: state.session.tests }) : [])[0];
-  if (d) con.line(`📋 미션 ${cur.id.slice(1)} (${IDE.highlight.esc(cur.title)}) 아직 미완 — ${IDE.highlight.esc(d)}`, 'hint');
+  if (d) con.line(`미션 ${cur.id.slice(1)} (${IDE.highlight.esc(cur.title)}) 아직 미완 — ${IDE.highlight.esc(d)}`, 'hint');
 }, 80));
 bus.on('tabs', showActive);
 bus.on('reload', showActive);

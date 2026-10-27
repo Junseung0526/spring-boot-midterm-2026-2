@@ -84,7 +84,7 @@ function handle(ctx, req) {
   // 뷰 컨트롤러
   if (hasAnn(ctrl, 'Controller') && !hasAnn(ctrl, 'RestController') && !hasAnn(mth, 'ResponseBody') && simple(mth.retType) !== 'ResponseEntity' && mth.retType !== 'void') {
     log('ERROR', 'o.a.c.c.C.[.[.[/].[dispatcherServlet]', `Servlet.service() for servlet [dispatcherServlet] threw exception [Error resolving template [${path.slice(1)}], template might not exist or might not be accessible by any of the configured Template Resolvers]`);
-    raw('💡 @Controller 의 반환값은 "뷰 이름"으로 해석됩니다. JSON 을 응답하려면 @RestController 또는 @ResponseBody', 'hint');
+    raw('@Controller 의 반환값은 "뷰 이름"으로 해석됩니다. JSON 을 응답하려면 @RestController 또는 @ResponseBody', 'hint');
     res.headers['Content-Type'] = 'text/html'; return finish(500, `<html><body><h1>Whitelabel Error Page</h1><p>There was an unexpected error (type=Internal Server Error, status=500).</p><p>Error resolving template [${path.slice(1)}], template might not exist</p></body></html>`, { 'Content-Type': 'text/html' });
   }
 
@@ -123,7 +123,7 @@ function handle(ctx, req) {
     const un = mp.bean.unin.includes(f);
     if (un && model.types.has(simple(f.type))) {
       log('ERROR', 'o.a.c.c.C.[.[.[/].[dispatcherServlet]', `Servlet.service() for servlet [dispatcherServlet] threw exception [Request processing failed: java.lang.NullPointerException: Cannot invoke "${fqn(model.types.get(simple(f.type)))}.${c[2]}(...)" because "this.${f.name}" is null]`);
-      raw('💡 필드가 주입되지 않았습니다 — 생성자 주입(final + 생성자) 또는 @Autowired 가 필요합니다', 'hint');
+      raw('필드가 주입되지 않았습니다 — 생성자 주입(final + 생성자) 또는 @Autowired 가 필요합니다', 'hint');
       return finish(500, errJson(500));
     }
     const dep = mp.bean.deps.find(d => d.name === f.name);
@@ -212,7 +212,7 @@ function handle(ctx, req) {
   advs.filter(a => a.kind === 'After').forEach(a => emit(a, advText(a, 'all'), sigText));
   advs.filter(a => a.kind === 'Around').forEach(a => emit(a, advText(a, 'after'), sigText));
   if (txOn) log('DEBUG', 'o.s.orm.jpa.JpaTransactionManager', 'Committing JPA transaction on EntityManager', { dim: true });
-  if (!proceeded) raw('💡 @Around 안에서 proceed() 를 호출하지 않아 대상 메서드가 실행되지 않았습니다', 'hint');
+  if (!proceeded) raw('@Around 안에서 proceed() 를 호출하지 않아 대상 메서드가 실행되지 않았습니다', 'hint');
 
   // 응답
   let status = 200;

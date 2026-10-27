@@ -18,14 +18,14 @@ function create(host, modal, toast) {
     return `<div class="mi ${done ? 'done' : ''} ${isCur ? 'current' : ''} ${!done && !isCur ? 'upcoming' : ''}" data-mission="${m.id}" title="클릭하면 작업 위치로 이동합니다">
         <div class="mt"><span class="ck">${done ? '✔' : i + 1}</span><b>${m.title}</b>${isCur ? '<span class="next">NEXT</span>' : ''}</div>
         <p>${m.goal}</p>
-        <div class="crit">📏 <b>채점 기준</b> ${esc(m.criteria || '')}</div>
-        ${isCur && diagOf(m)[0] ? `<div class="diag"><b>🔎 지금 코드</b> ${esc(diagOf(m)[0])}</div>` : ''}
-        ${vr ? `<div class="vres ${vr.ok ? 'ok' : 'bad'}"><b>${vr.ok ? '✅ 정답입니다!' : '❌ 아직이에요'}</b> ${vr.ok ? '' : esc(vr.msg)}${vr.detail ? `<small>${esc(vr.detail)}</small>` : ''}</div>` : ''}
-        <div class="vbar"><button class="verify" data-verify="${m.id}" ${verifyingId ? 'disabled' : ''}>${verifyingId === m.id ? '⏳ 채점 중…' : done ? '✅ 다시 확인' : '✅ 정답 확인'}</button><span class="vhint">앱을 새로 실행하고 필요한 ${m.auto && m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행해요</span></div>
-        <div class="ma"><button data-goto="${m.id}" class="goto">📍 위치로 이동</button><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">📖 개념</button></div>
-        ${openHints.has(m.id) ? `<div class="mh2">${diagOf(m).length ? `<div class="dg">🔎 현재 코드 진단</div><ul>${diagOf(m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="dg">일반 힌트</div><ol>${m.hints.map(h => `<li>${esc(h)}</li>`).join('')}</ol>${m.snippet ? `<div class="dg">정답 예시</div><pre class="snip">${highlight.lines(m.snippet, 'x.java').join('\n')}</pre>` : ''}</div>` : ''}</div>`;
+        <div class="crit"><b>채점 기준</b> ${esc(m.criteria || '')}</div>
+        ${isCur && diagOf(m)[0] ? `<div class="diag"><b>지금 코드</b> ${esc(diagOf(m)[0])}</div>` : ''}
+        ${vr ? `<div class="vres ${vr.ok ? 'ok' : 'bad'}"><b>${vr.ok ? '✔ 정답입니다!' : '✖ 아직이에요'}</b> ${vr.ok ? '' : esc(vr.msg)}${vr.detail ? `<small>${esc(vr.detail)}</small>` : ''}</div>` : ''}
+        <div class="vbar"><button class="verify" data-verify="${m.id}" ${verifyingId ? 'disabled' : ''}>${verifyingId === m.id ? '채점 중…' : done ? '다시 확인' : '정답 확인'}</button><span class="vhint">앱을 새로 실행하고 필요한 ${m.auto && m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행해요</span></div>
+        <div class="ma"><button data-goto="${m.id}" class="goto">위치로 이동</button><button data-hint="${m.id}">힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">개념</button></div>
+        ${openHints.has(m.id) ? `<div class="mh2">${diagOf(m).length ? `<div class="dg">현재 코드 진단</div><ul>${diagOf(m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="dg">일반 힌트</div><ol>${m.hints.map(h => `<li>${esc(h)}</li>`).join('')}</ol>${m.snippet ? `<div class="dg">정답 예시</div><pre class="snip">${highlight.lines(m.snippet, 'x.java').join('\n')}</pre>` : ''}</div>` : ''}</div>`;
   };
-  const lockedCard = m => `<div class="mi locked" data-mission="${m.id}"><div class="mt"><span class="ck">🔒</span><span class="sk w60"></span></div><span class="sk w95"></span><span class="sk w70"></span><div class="ma"><span class="lockmsg">앞 미션을 완료하면 열려요</span><button data-peek="${m.id}">미리 열기</button></div></div>`;
+  const lockedCard = m => `<div class="mi locked" data-mission="${m.id}"><div class="mt"><span class="ck"><svg class="ic"><use href="#i-lock"/></svg></span><span class="sk w60"></span></div><span class="sk w95"></span><span class="sk w70"></span><div class="ma"><span class="lockmsg">앞 미션을 완료하면 열려요</span><button data-peek="${m.id}">미리 열기</button></div></div>`;
 
   const draw = () => {
     const sc = host.closest('.twb') || host, top = sc.scrollTop;
@@ -33,20 +33,20 @@ function create(host, modal, toast) {
     const total = IDE.MISSIONS.length, doneList = IDE.MISSIONS.filter(m => state.done.has(m.id)), n = doneList.length;
     const rest = IDE.MISSIONS.filter(m => !state.done.has(m.id));     // 현재 · 미리 연 · 잠긴 미션
     // 위쪽 토글: 완료한 미션은 접어 두고 필요할 때만 펼친다
-    const doneBlock = n ? `<div class="donebox"><button class="donetoggle ${showDone ? 'open' : ''}" data-toggle-done aria-expanded="${showDone}"><span class="caret">${showDone ? '▾' : '▸'}</span> ✔ 완료한 미션 <b>${n}</b>개 ${showDone ? '' : `<span class="chips">${doneList.map(m => `<i>${m.id.slice(1)}</i>`).join('')}</span>`}</button>${showDone ? `<div class="donelist">${doneList.map(m => card(m, cur)).join('')}</div>` : ''}</div>` : '';
+    const doneBlock = n ? `<div class="donebox"><button class="donetoggle ${showDone ? 'open' : ''}" data-toggle-done aria-expanded="${showDone}"><span class="dtitle">✔ 완료한 미션 <b>${n}</b>개</span> ${showDone ? '<span class="tgl">접기</span>' : `<span class="chips">${doneList.map(m => `<i>${m.id.slice(1)}</i>`).join('')}</span>`}</button>${showDone ? `<div class="donelist">${doneList.map(m => card(m, cur)).join('')}</div>` : ''}</div>` : '';
     let shownLockHead = false, prevStage = null;
     const restHtml = rest.map(m => {
       const isCur = m.id === cur?.id, locked = !isCur && !peek.has(m.id);
       const first = m.stage !== prevStage; prevStage = m.stage;
       const groupVisible = rest.some(x => x.stage === m.stage && (x.id === cur?.id || peek.has(x.id)));
-      const head = !first ? '' : groupVisible ? `<div class="stage">${m.stage}</div>` : (shownLockHead ? '' : '<div class="stage lockedstage">🔒 이후 단계는 앞 미션을 완료하면 열려요</div>');
+      const head = !first ? '' : groupVisible ? `<div class="stage">${m.stage}</div>` : (shownLockHead ? '' : '<div class="stage lockedstage">이후 단계는 앞 미션을 완료하면 열려요</div>');
       if (first && !groupVisible) shownLockHead = true;
       return head + (locked ? lockedCard(m) : card(m, cur));
     }).join('');
     host.innerHTML = `<div class="mh"><span>진행도</span><span>${n} / ${total} 완료</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` + doneBlock +
-      (rest.length ? restHtml : '<div class="alldone">🎉 모든 미션을 완료했어요!<small>위의 "완료한 미션"을 펼쳐 다시 확인하거나, 모의고사에 도전해 보세요.</small></div>') +
-      `<div class="mfoot"><button data-sol>✅ 정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
-       <p class="mnote">TIP · 카드의 <b>✅ 정답 확인</b> 을 누르면 앱을 새로 실행하고 필요한 요청·테스트를 자동으로 보내 채점해요. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 IoC/DI → 조회 → 생성 → 수정 → 삭제 → 트랜잭션 → AOP → 테스트 순으로 스프링이 익숙해집니다.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
+      (rest.length ? restHtml : '<div class="alldone">모든 미션을 완료했어요!<small>위의 "완료한 미션"을 펼쳐 다시 확인하거나, 모의고사에 도전해 보세요.</small></div>') +
+      `<div class="mfoot"><button data-sol>정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
+       <p class="mnote">TIP · 카드의 <b>정답 확인</b> 을 누르면 앱을 새로 실행하고 필요한 요청·테스트를 자동으로 보내 채점해요. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 IoC/DI → 조회 → 생성 → 수정 → 삭제 → 트랜잭션 → AOP → 테스트 순으로 스프링이 익숙해집니다.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
     sc.scrollTop = top;
   };
   function check() {
@@ -54,8 +54,8 @@ function create(host, modal, toast) {
     for (const m of IDE.MISSIONS) if (!state.done.has(m.id) && m.check(state.session)) {
       state.done.add(m.id); changed = true;
       const nxt = IDE.MISSIONS.find(x => !state.done.has(x.id) && x !== m);
-      toast(`🎉 미션 완료: ${m.title}${nxt ? ` — 다음: ${nxt.title}` : ' — 모두 완료! 모의고사에 도전해 보세요'}`);
-      bus.emit('console-msg', { text: `🎉 미션 ${m.id.slice(1)} 완료 — ${m.title}${nxt ? '   (다음: 미션 ' + nxt.id.slice(1) + ' ' + nxt.title + ')' : '   (모든 미션 완료!)'}`, cls: 'ok' });
+      toast(`미션 완료: ${m.title}${nxt ? ` — 다음: ${nxt.title}` : ' — 모두 완료! 모의고사에 도전해 보세요'}`);
+      bus.emit('console-msg', { text: `✔ 미션 ${m.id.slice(1)} 완료 — ${m.title}${nxt ? '   (다음: 미션 ' + nxt.id.slice(1) + ' ' + nxt.title + ')' : '   (모든 미션 완료!)'}`, cls: 'ok' });
     }
     if (changed) { store.save(); draw(); }
   }

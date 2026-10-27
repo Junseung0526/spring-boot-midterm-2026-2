@@ -66,10 +66,10 @@ function mount(host, concept) {
     const end = $('.cp-end'), M = IDE.memo, next = IDE.concepts.nextScene(concept.id), pr = concept.practice;
     const pool = M ? EXAM.map((q, idx) => ({ q, idx })).filter(x => x.q.t === concept.tag) : [];
     const picks = M ? M.shuffle(pool).slice(0, 2).map(x => ({ ...x, choices: M.shuffle(x.q.c.map((t, k) => ({ t, ok: k === x.q.a }))) })) : [];
-    end.innerHTML = `<div class="end-h">🎉 이 개념을 끝까지 봤어요 <small>${esc(concept.title)}</small></div>
-      ${picks.length ? `<div class="end-quiz"><b>✅ 이해 확인</b>${picks.map((p, qi) => `<div class="eq" data-q="${qi}"><p>${esc(p.q.q)}</p><div class="eo">${p.choices.map((c, k) => `<button data-q="${qi}" data-k="${k}">${esc(c.t)}</button>`).join('')}</div><div class="ex" hidden>${esc(p.q.e)}</div></div>`).join('')}</div>` : ''}
-      <div class="end-go">${pr ? `<button data-open="${pr.file}" class="go practice">🧪 ${esc(pr.label)}</button>` : ''}
-        ${next ? `<button data-open="concept:${next.id}" class="go">다음 개념 · ${esc(next.title)} ▶</button>` : `<button data-memo="exam" class="go">📝 모의고사로 마무리 ▶</button>`}
+    end.innerHTML = `<div class="end-h">이 개념을 끝까지 봤어요 <small>${esc(concept.title)}</small></div>
+      ${picks.length ? `<div class="end-quiz"><b>이해 확인</b>${picks.map((p, qi) => `<div class="eq" data-q="${qi}"><p>${esc(p.q.q)}</p><div class="eo">${p.choices.map((c, k) => `<button data-q="${qi}" data-k="${k}">${esc(c.t)}</button>`).join('')}</div><div class="ex" hidden>${esc(p.q.e)}</div></div>`).join('')}</div>` : ''}
+      <div class="end-go">${pr ? `<button data-open="${pr.file}" class="go practice">${esc(pr.label)}</button>` : ''}
+        ${next ? `<button data-open="concept:${next.id}" class="go">다음 개념 · ${esc(next.title)} ▶</button>` : `<button data-memo="exam" class="go">모의고사로 마무리 ▶</button>`}
         <button data-k="reset" class="go ghost">↻ 처음부터 다시</button></div>`;
     end.onclick = e => {
       const b = e.target.closest('button[data-q]'); if (!b || b.disabled) return;
@@ -118,7 +118,7 @@ function mount(host, concept) {
   });
   const onKey = e => { if (host.offsetParent === null || /INPUT|TEXTAREA/.test(e.target.tagName) || e.ctrlKey || e.altKey) return; if (e.key === 'ArrowRight') { stop(); go(i + 1); } else if (e.key === 'ArrowLeft') { stop(); go(i - 1); } else if (e.key === ' ') { e.preventDefault(); host.querySelector('.play').click(); } };
   document.addEventListener('keydown', onKey);
-  playing = true;            // 열자마자 자동재생 (⏸️ 로 멈출 수 있음)
+  playing = true;            // 열자마자 자동재생 (일시정지 버튼으로 멈출 수 있음)
   go(0);
   return { destroy() { clearInterval(typeT); clearTimeout(nextT); document.removeEventListener('keydown', onKey); } };
 }

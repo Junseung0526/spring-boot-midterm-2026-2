@@ -73,7 +73,7 @@
 .lockmsg { color: var(--dim); font-size: 11.5px; } .lockedstage { color: #6b7078; } .snip { margin: 4px 0 0; padding: 8px 10px; background: var(--code); border-radius: 6px; font: 11.5px/1.55 var(--mono); overflow-x: auto; color: var(--code-text); white-space: pre; }
 .snip .k { color: var(--kw); } .snip .s { color: var(--str); } .snip .a { color: var(--ann); } .snip .c { color: var(--cm); } .snip .n { color: var(--num); }
 
-/* ✅ 정답 확인 */
+/* 정답 확인 */
 .vbar { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; } .verify { padding: 6px 14px; border-radius: 8px; background: #2d6a3a; color: #fff; font-weight: 700; } .verify:hover:not(:disabled) { background: #378247; } .verify:disabled { opacity: .6; } .vhint { color: var(--dim); font-size: 11px; }
 .vres { margin: 6px 0; padding: 7px 10px; border-radius: 8px; line-height: 1.55; } .vres.ok { background: #223a28; border-left: 3px solid var(--ok); } .vres.bad { background: #43282b; border-left: 3px solid var(--err); color: #f1c9cd; } .vres small { display: block; color: #98a1ab; margin-top: 3px; font-family: var(--mono); font-size: 11px; word-break: break-all; }
 
@@ -82,3 +82,9 @@
 .donetoggle .caret { width: 12px; color: #7fd37f; } .donetoggle .chips { margin-left: auto; display: flex; gap: 3px; } .donetoggle .chips i { font-style: normal; font-size: 10px; font-weight: 700; width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; background: #3d7a46; color: #0d1f10; }
 .donelist { margin: 4px 0 8px; padding-left: 6px; border-left: 2px solid #3d6b45; } .donelist .mi { margin-left: 2px; }
 .alldone { margin: 8px; padding: 14px; text-align: center; background: #263a2c; border: 1px solid #3d7a46; border-radius: 10px; font-weight: 700; color: #d4f5c4; } .alldone small { display: block; margin-top: 4px; font-weight: 400; color: #98a1ab; }
+
+.ck .ic { width: 12px; height: 12px; }
+
+.donetoggle .caret { display: inline-grid; } .donetoggle .caret .ic { width: 12px; height: 12px; transition: transform .15s; } .donetoggle:not(.open) .caret .ic { transform: rotate(-90deg); }
+
+.donetoggle { justify-content: space-between; } .donetoggle .tgl { color: #8fb69a; font-size: 11.5px; }

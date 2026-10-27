@@ -255,7 +255,7 @@ function runTests(files, only) {
           bad = { ex: 'NoSuchBeanDefinitionException', desc: `${where} required a bean of type '${fqn(T2)}' that could not be found.` }; break;
         }
       }
-      if (bad) { failAll(`java.lang.IllegalStateException: Failed to load ApplicationContext\nCaused by: org.springframework.beans.factory.${bad.ex}: ${bad.desc}\n\n💡 @WebMvcTest 는 웹 계층만 로드하므로 Service 는 @MockitoBean 으로 가짜 빈을 등록해야 합니다.`); continue; }
+      if (bad) { failAll(`java.lang.IllegalStateException: Failed to load ApplicationContext\nCaused by: org.springframework.beans.factory.${bad.ex}: ${bad.desc}\n\n@WebMvcTest 는 웹 계층만 로드하므로 Service 는 @MockitoBean 으로 가짜 빈을 등록해야 합니다.`); continue; }
       const web = IDE.buildWeb(model, rb);
       if (ctrl) web.mappings = web.mappings.filter(m => m.bean.t === ctrl);
       const E = rb.entities && rb.entities[0] || null;

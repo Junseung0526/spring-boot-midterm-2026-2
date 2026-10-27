@@ -36,7 +36,7 @@ const DIAG = {
     if (!importsOf(t).some(i => /stereotype\.(Service|Component|\*)$/.test(i))) return ['@Service 는 썼지만 import org.springframework.stereotype.Service; 가 없어요 (Cannot resolve symbol 이 보일 거예요).'];
     return pick(javaErr(c), needRun(c) && '코드는 맞아요! ▶ Run 으로 앱을 시작하세요.', c.server.dirty && RERUN, c.server.running && !c.server.dirty && '앱이 정상 기동 중이에요 ✔'); },
   m2: c => { const m = mapped(c, 'GetMapping', isRoot);
-    if (!m) return ['PostController 에 목록 조회 메서드가 없어요 → TODO 미션 2 자리에 @GetMapping 이 붙은 list() 메서드를 만드세요 (스니펫은 💡 힌트에서 볼 수 있어요).'];
+    if (!m) return ['PostController 에 목록 조회 메서드가 없어요 → TODO 미션 2 자리에 @GetMapping 이 붙은 list() 메서드를 만드세요 (스니펫은 힌트에서 볼 수 있어요).'];
     if (!callsService(m, 'findAll')) return ['메서드가 서비스의 findAll() 을 호출하지 않아요 → return postService.findAll();'];
     const g = lastResp(c, r => r.method === 'GET' && r.path === '/api/posts');
     return sendTail(c, g && g.status === 200, '코드는 맞아요! requests.http 1번(목록 조회) 요청을 보내 200 을 확인하세요.').concat(g && g.status !== 200 ? [`마지막 응답이 ${g.status} 예요 — 콘솔 로그를 확인하세요.`] : []); },
@@ -97,11 +97,11 @@ const DIAG = {
   m11: c => { const t = typeOf(c, CT); if (!t) return ['PostControllerTest.java 를 찾을 수 없어요.'];
     const f = t.fields.find(x => x.type === 'PostService');
     if (f && !annOf(f, 'MockitoBean') && !annOf(f, 'MockitoSpyBean')) return ['PostService 필드가 그냥 필드라서 @WebMvcTest 컨텍스트에 빈이 없어요 → 필드 위에 @MockitoBean 을 붙이세요 (Boot 4: @MockBean 대체).'];
-    if (!c.tests) return ['툴바의 🧪 테스트 버튼(또는 거터 ▶)으로 테스트를 실행하세요.'];
+    if (!c.tests) return ['툴바의 테스트 버튼(또는 거터 ▶)으로 테스트를 실행하세요.'];
     if (c.tests.build) return ['테스트 컴파일 실패 — Problems 탭의 오류를 먼저 고치세요.'];
     const bad = c.tests.results.filter(r => r.cls === 'PostControllerTest' && (r.method === 'list' || r.method === 'get') && r.status !== 'pass');
     return bad.length ? [`아직 실패: ${bad.map(b => b.method).join(', ')} — ${(bad[0].msg || '').split('\n').filter(Boolean).slice(0, 2).join(' / ')} (컨트롤러에 미션 2·3 의 메서드가 있어야 통과해요)`] : ['list · get 테스트가 통과했어요 ✔']; },
-  m12: c => { if (!c.tests) return ['툴바의 🧪 테스트 버튼으로 전체 테스트를 실행하세요.']; if (c.tests.build) return ['테스트 컴파일 실패 — Problems 탭을 확인하세요.'];
+  m12: c => { if (!c.tests) return ['툴바의 테스트 버튼으로 전체 테스트를 실행하세요.']; if (c.tests.build) return ['테스트 컴파일 실패 — Problems 탭을 확인하세요.'];
     const MAP = { contextLoads: '미션 1', list: '미션 2', get: '미션 3', create: '미션 5', create_invalid: '미션 6', update: '미션 7', delete: '미션 8' };
     const bad = c.tests.results.filter(r => r.status !== 'pass');
     if (!bad.length) return ['전부 초록불이에요 ✔'];
@@ -124,7 +124,7 @@ const SNIP = {
   m12: '// 실패한 테스트의 메시지를 읽고, 연결된 미션(컨트롤러/서비스)을 고치세요',
 };
 
-/* ───────────── 자동 채점 시나리오 (✅ 정답 확인 버튼) ─────────────
+/* ───────────── 자동 채점 시나리오 (정답 확인 버튼) ─────────────
    앱을 새로 실행(DB 초기화)한 뒤 requests 를 차례로 보내고, tests 가 true 면 전체 테스트를 실행해 그 결과만으로 채점한다. */
 const VALID = '{"title":"새 글","content":"채점용 내용"}', INVALID = '{"title":"","content":"x"}', PUTBODY = '{"title":"수정한 제목","content":"수정한 내용"}';
 const rq = (method, path, body) => ({ method, path, body: body || '' });
@@ -196,12 +196,12 @@ const MISSIONS = [
     hints: ['@Aspect 만으로는 부족합니다. 스프링이 관리하는 빈이어야 프록시가 만들어집니다.', 'LogAspect 에 @Component. (Rerun 필요)', '개념 탭 "AOP" 의 호출 순서(Around → Before → 대상 …)를 로그와 비교해 보세요.'],
     target: { file: ASP, find: 'TODO 미션 10' }, study: 'concept:aop', check: s => s.aspectHit },
   { id: 'm11', auto: AUTO.m11, stage: '8단계 · 테스트', title: '@WebMvcTest 가 뜨게 만들기', diagnose: DIAG.m11, snippet: SNIP.m11,
-    criteria: '🧪 테스트 실행 후 PostControllerTest 의 list · get 이 통과하면 완료',
-    goal: '🧪 테스트 실행(툴바) 후 PostControllerTest 의 list · get 테스트가 초록불이 되게 하세요.',
+    criteria: '테스트 실행 후 PostControllerTest 의 list · get 이 통과하면 완료',
+    goal: '테스트 실행(툴바) 후 PostControllerTest 의 list · get 테스트가 초록불이 되게 하세요.',
     hints: ['@WebMvcTest 는 웹 계층만 로드하므로 PostService 빈이 없습니다 → 컨텍스트 로딩 실패.', '필드에 @MockitoBean 을 붙여 가짜 빈을 등록하세요 (Boot 4: @MockBean 대체).', 'list · get 이 통과하려면 컨트롤러에 미션 2·3 의 메서드가 있어야 해요.'],
     target: { file: CT, find: 'TODO 미션 11' }, study: 'concept:testing', check: s => passed(s, 'PostControllerTest', 'list') && passed(s, 'PostControllerTest', 'get') },
   { id: 'm12', auto: AUTO.m12, stage: '8단계 · 테스트', title: '모든 테스트 통과 (전부 초록불)', diagnose: DIAG.m12, snippet: SNIP.m12,
-    criteria: '🧪 테스트 실행 후 14개가 모두 통과하면 완료',
+    criteria: '테스트 실행 후 14개가 모두 통과하면 완료',
     goal: '14개 테스트가 모두 통과하게 하세요. 테스트는 앞에서 만든 기능의 "인수 조건" 입니다.',
     hints: ['실패한 테스트의 메시지를 읽고 어떤 미션과 연결되는지 찾아보세요.', 'create → 201(미션 5), create_invalid → 400(미션 6), update → 미션 7, delete → 204(미션 8).', 'contextLoads 실패는 미션 1.'],
     target: { file: CT, find: 'class PostControllerTest' }, study: 'concept:testing', check: s => !!s.tests && s.tests.results.length >= 14 && s.tests.summary.fail === 0 && s.tests.summary.skip === 0 },

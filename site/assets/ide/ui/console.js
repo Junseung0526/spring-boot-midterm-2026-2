@@ -37,7 +37,7 @@ function create(host, hooks) {
     const byFile = {};
     list.forEach(p => (byFile[p.path] ||= []).push(p));
     pane('problems').innerHTML = !list.length ? '<div class="ln dim">문제가 없습니다. No problems found ✔</div>' :
-      Object.entries(byFile).map(([f, ps]) => `<div class="pf">${esc(f.split('/').pop())} <small>${ps.length} problem${ps.length > 1 ? 's' : ''}</small></div>` + ps.map(p => `<div class="pr" data-path="${p.path}" data-line="${p.line}"><i class="gerr"></i>${esc(p.msg)} <small>:${p.line}${p.hint ? ' · 💡 ' + esc(p.hint) : ''}${p.kind === 'spring' ? ' · Spring' : ''}</small></div>`).join('')).join('');
+      Object.entries(byFile).map(([f, ps]) => `<div class="pf">${esc(f.split('/').pop())} <small>${ps.length} problem${ps.length > 1 ? 's' : ''}</small></div>` + ps.map(p => `<div class="pr" data-path="${p.path}" data-line="${p.line}"><i class="gerr"></i>${esc(p.msg)} <small>:${p.line}${p.hint ? ' · ' + esc(p.hint) : ''}${p.kind === 'spring' ? ' · Spring' : ''}</small></div>`).join('')).join('');
   }
   pane('problems').addEventListener('click', e => { const r = e.target.closest('.pr'); if (r) hooks.onGoto?.(r.dataset.path, +r.dataset.line); });
 
@@ -52,7 +52,7 @@ function create(host, hooks) {
   /* 테스트 결과: 요약 + 클래스별 트리, 실패는 메시지 펼침 */
   function showTests(r) {
     const tp = pane('tests');
-    if (r.build) { tp.innerHTML = `<div class="ln err">❌ 테스트 컴파일 실패 — ${r.problems.length}개 오류 (Problems 탭 참고)</div>`; host.querySelector('#tcnt').textContent = ''; show('tests'); return; }
+    if (r.build) { tp.innerHTML = `<div class="ln err">✖ 테스트 컴파일 실패 — ${r.problems.length}개 오류 (Problems 탭 참고)</div>`; host.querySelector('#tcnt').textContent = ''; show('tests'); return; }
     const sm = r.summary, total = sm.pass + sm.fail + sm.skip;
     const byCls = {}; r.results.forEach(x => (byCls[x.cls] ||= []).push(x));
     const icon = st => ({ pass: '<i class="tp">✔</i>', fail: '<i class="tf">✖</i>', skip: '<i class="ts2">⚠</i>' }[st]);
