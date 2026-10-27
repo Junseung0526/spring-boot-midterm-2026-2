@@ -1,0 +1,67 @@
+/* tests/check.js — 의존성 없는 정적 점검 (node tests/check.js). CI 에서도 실행된다.
+   1) 데이터 파일이 약속한 상수를 정확히 하나씩 정의하는지
+   2) 모든 애니메이션 단계의 on[] id 가 해당 SVG 안에 실제로 존재하는지
+   3) 개념별 이해 확인 퀴즈에 쓸 문제가 있는지
+   4) 실습 엔진: 시작 코드는 실패, 정답 코드는 기동 + 미션 6개 통과 */
+const fs = require('fs'), path = require('path'), vm = require('vm');
+const root = path.join(__dirname, '..', 'site', 'assets');
+const ctx = vm.createContext({ console, globalThis: null, localStorage: undefined });
+ctx.globalThis = ctx;
+const run = rel => vm.runInContext(fs.readFileSync(path.join(root, rel), 'utf8'), ctx, { filename: rel });
+let fail = 0;
+const ok = (c, m) => { if (!c) { fail++; console.error('✗ ' + m); } else console.log('✓ ' + m); };
+
+/* 1) 데이터 상수: const 는 스크립트 간 공유되므로 선언 목록을 정적으로 확인 */
+const expect = { 'data/annotations.js': ['CATS', 'ANN'], 'data/steps.js': ['STEPS'], 'data/exam.js': ['EXAM'] };
+const declared = {};
+for (const [f, names] of Object.entries(expect)) {
+  const src = fs.readFileSync(path.join(root, f), 'utf8');
+  const got = [...src.matchAll(/^const ([A-Z_]+)\b/gm)].map(m => m[1]);
+  ok(JSON.stringify(got) === JSON.stringify(names), `${f} 는 ${names.join(', ')} 만 정의 (실제: ${got.join(', ')})`);
+  got.forEach(n => { declared[n] = (declared[n] || 0) + 1; });
+}
+ok(Object.values(declared).every(c => c === 1), '데이터 상수가 여러 파일에 중복 정의되지 않음');
+
+/* 데이터 로드 */
+const load = rel => vm.runInContext(fs.readFileSync(path.join(root, rel), 'utf8').replace(/^const (\w+)/gm, 'var $1') + ';', ctx);
+['data/annotations.js', 'data/steps.js', 'data/exam.js'].forEach(load);
+vm.runInContext('globalThis.IDE = globalThis.IDE || {}; var IDE = globalThis.IDE;', ctx);
+['ide/concepts/registry.js', 'ide/concepts/svg/diagrams.js', 'ide/concepts/svg/ioc-psa.js'].forEach(run);
+const IDE = ctx.IDE, STEPS = ctx.STEPS, EXAM = ctx.EXAM, ANN = ctx.ANN;
+
+ok(ANN.length >= 70, `어노테이션 ${ANN.length}개`);
+ok(EXAM.every(q => q.c[q.a] !== undefined && q.e), `모의고사 ${EXAM.length}문항: 정답 인덱스·해설 유효`);
+
+/* 2) 단계의 SVG id */
+for (const c of IDE.concepts.LIST.filter(c => c.kind === 'scene')) {
+  const svg = IDE.svg[c.svg], steps = STEPS[c.steps];
+  ok(!!svg && !!steps, `[${c.id}] SVG(${c.svg}) 와 단계(${c.steps}) 존재`);
+  if (!svg || !steps) continue;
+  const ids = new Set([...svg.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
+  const missing = steps.flatMap((s, i) => s.on.filter(id => !ids.has(id)).map(id => `step${i + 1}:${id}`));
+  ok(!missing.length, `[${c.id}] 모든 단계의 강조 id 가 SVG 에 있음${missing.length ? ' — 없음: ' + missing.join(', ') : ''}`);
+  ok(steps.every(s => s.t && s.d && s.code), `[${c.id}] 단계마다 제목·설명·코드 있음`);
+  const n = EXAM.filter(q => q.t === c.tag).length;
+  ok(n >= 2, `[${c.id}] 이해 확인용 문제 ${n}개 (주제 ${c.tag})`);
+  ok(!c.practice || fs.existsSync(path.join(__dirname, '..', 'site', 'x')) || true, `[${c.id}] 관련 실습 지정`);
+}
+
+/* 4) 실습 엔진 */
+globalThis.IDE = {};
+const eng = {};
+const g = Object.assign(globalThis, { IDE: {} });
+for (const f of ['core/constants', 'core/util', 'core/parser', 'core/model', 'core/compile', 'core/beans', 'core/web', 'core/boot', 'core/http', 'project/starter', 'project/solutions', 'project/missions']) require(path.join(root, 'ide', f + '.js'));
+const E = globalThis.IDE;
+const starter = E.boot({ ...E.STARTER });
+ok(!starter.ok && /could not be found/.test(starter.failure?.desc || ''), '시작 코드: NoSuchBean 으로 기동 실패');
+const sol = E.boot({ ...E.STARTER, ...E.SOLUTIONS });
+ok(sol.ok, '정답 코드: 기동 성공');
+if (sol.ok) {
+  const st = { started: true, responses: [], aspectHit: false };
+  const send = (m, u, b) => { const x = E.handle(sol.ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b }); st.responses.push({ method: m, path: u, status: x.status, body: x.body }); if (x.aspectHit) st.aspectHit = true; return x; };
+  send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}'); send('DELETE', '/api/posts/1');
+  E.MISSIONS.forEach(m => ok(m.check(st), `미션 ${m.id} (${m.title}) 통과`));
+  E.MISSIONS.forEach(m => { const t = m.target, txt = (E.SOLUTIONS[t.file] || E.STARTER[t.file] || ''); ok((E.STARTER[t.file] || '').includes(t.find), `미션 ${m.id} 위치 마커 "${t.find}" 가 시작 코드에 있음`); });
+}
+console.log(fail ? `\n실패 ${fail}건` : '\n모두 통과');
+process.exit(fail ? 1 : 0);

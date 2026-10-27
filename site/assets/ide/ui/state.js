@@ -22,7 +22,9 @@ function load() {
   state.files = { ...IDE.STARTER, ...(saved.files || {}) };
   state.open = (saved.open || []).filter(p => p in state.files || isConcept(p));
   if (!state.open.length) state.open = defaultOpen();
-  state.active = state.open.includes(saved.active) ? saved.active : state.open[0];
+  // 접속할 때마다 첫 화면은 항상 Concepts 의 "시작하기" (열어 둔 다른 탭은 그대로 유지)
+  if (!state.open.includes('concept:welcome')) state.open.unshift('concept:welcome');
+  state.active = 'concept:welcome';
   state.done = new Set(saved.done || []);
 }
 let timer = null;
