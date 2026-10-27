@@ -18,11 +18,11 @@ function create(con) {
   let running = false;
   const status = () => bus.emit('server');
 
-  async function run() {
+  async function run(opts = {}) {
     if (running) return;
-    try { await runInner(); } catch (e) { con.line('❌ 실행 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); state.server = { running: false, ctx: null, dirty: false }; status(); } finally { running = false; }
+    try { await runInner(opts); } catch (e) { con.line('❌ 실행 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); state.server = { running: false, ctx: null, dirty: false }; status(); } finally { running = false; }
   }
-  async function runInner() {
+  async function runInner(opts) {
     if (state.server.running) stop(true);
     running = true; con.clear(); con.show('run'); bus.emit('building');
     const files = { ...state.files };
@@ -43,7 +43,7 @@ function create(con) {
       con.line('', ''); con.line('Process finished with exit code 1', 'dim');
       state.server = { running: false, ctx: null, dirty: false };
     }
-    running = false; status(); bus.emit('session'); bus.emit('graded', 'run');
+    running = false; status(); bus.emit('session'); if (!opts.quiet) bus.emit('graded', 'run');
   }
   function stop(silent) {
     if (!state.server.running) return;
@@ -81,7 +81,46 @@ function create(con) {
     state.session.tests = r; con.showTests(r); bus.emit('tests', r); bus.emit('session'); bus.emit('testing', false); bus.emit('graded', 'tests');
     return r;
   }
-  return { run, stop, send, runTests };
+  /* ✅ 정답 확인: 앱을 새로 실행(DB 초기화) → 필요한 요청/테스트를 자동 실행 → 그 결과만으로 채점 */
+  let verifying = false;
+  async function verify(m) {
+    if (verifying || running) return;
+    verifying = true; bus.emit('verifying', m.id);
+    const fresh = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
+    const n = m.id.slice(1);
+    try {
+      con.show('run'); con.line(`🔍 미션 ${n} 채점 — 앱을 새로 실행하고 필요한 ${m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행합니다`, 'hint');
+      if (m.auto.requests) {
+        await run({ quiet: true });
+        fresh.started = state.server.running;
+        if (state.server.running) for (const q of m.auto.requests) {
+          const r = IDE.handle(state.server.ctx, { method: q.method, url: 'http://localhost:' + state.server.ctx.port + q.path, headers: q.body ? { 'Content-Type': 'application/json' } : {}, body: q.body });
+          r.logs.forEach(it => con.item(it));
+          con.line(`   ${q.method} ${q.path} → ${r.status}${r.status && IDE.REASON[r.status] ? ' ' + IDE.REASON[r.status] : ''}`, 'dim');
+          fresh.responses.push({ method: q.method, path: q.path, status: r.status, body: r.body });
+          if (r.aspectHit) fresh.aspectHit = true; if (r.txHit) fresh.txHit = true;
+        }
+      }
+      if (m.auto.tests) { fresh.tests = await runTests(); }
+      const ok = !!m.check(fresh);
+      const detail = fresh.responses.map(r => `${r.method} ${r.path} → ${r.status}`).join(' · ') || (fresh.tests && !fresh.tests.build ? `테스트 ${fresh.tests.summary.pass}/${fresh.tests.results.length} 통과` : '');
+      if (ok) {
+        state.verify[m.id] = { ok: true, msg: '정답입니다!', detail };
+        if (!state.done.has(m.id)) { state.done.add(m.id); IDE.store.save(); }
+        state.session.started = state.session.started || fresh.started; fresh.responses.forEach(r => state.session.responses.push(r));
+        if (fresh.aspectHit) state.session.aspectHit = true; if (fresh.txHit) state.session.txHit = true;
+        con.line(`✅ 미션 ${n} 정답! — ${m.title}`, 'ok'); IDE.toast?.(`✅ 미션 ${n} 정답!`);
+        bus.emit('session');
+      } else {
+        const why = !fresh.started && m.auto.requests && m.auto.requests.length ? (state.server.running ? '' : '앱이 실행되지 않았어요 — 콘솔의 오류를 먼저 해결하세요.') : '';
+        const d = (m.diagnose ? m.diagnose({ files: state.files, session: fresh, server: { running: state.server.running, dirty: false }, problems: state.problems, tests: fresh.tests }) : []).filter(Boolean);
+        state.verify[m.id] = { ok: false, msg: why || d[0] || '아직 조건을 만족하지 못했어요.', detail };
+        con.line(`❌ 미션 ${n} 아직이에요 — ${state.verify[m.id].msg}`, 'err');
+      }
+    } catch (e) { state.verify[m.id] = { ok: false, msg: '채점 중 오류: ' + (e.message || e), detail: '' }; con.line('❌ 채점 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); }
+    finally { verifying = false; bus.emit('verified', m.id); }
+  }
+  return { run, stop, send, runTests, verify };
 }
 Object.assign(IDE, { Runner: { create, parseRequest } });
 })();

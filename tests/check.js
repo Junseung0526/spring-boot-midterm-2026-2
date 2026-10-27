@@ -80,6 +80,18 @@ ok(/Rerun/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }, { 
 const onlySvc = { ...E.STARTER, [svcPath]: E.SOLUTIONS[svcPath] };
 ok(E.MISSIONS[11].diagnose(dctx(onlySvc, { tests: E.runTests(onlySvc) })).some(x => /미션/.test(x)), '진단: 실패한 테스트를 해당 미션과 연결');
 
+/* ✅ 정답 확인(자동 채점) 시나리오: 정답 코드에서는 전부 통과, 시작 코드에서는 통과하지 않아야 한다 */
+const autoRun = (files, m) => {
+  const fresh = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
+  if (m.auto.requests) { const b = E.boot(files); fresh.started = b.ok;
+    if (b.ok) for (const q of m.auto.requests) { const x = E.handle(b.ctx, { method: q.method, url: 'http://localhost:8080' + q.path, headers: q.body ? { 'Content-Type': 'application/json' } : {}, body: q.body }); fresh.responses.push({ method: q.method, path: q.path, status: x.status, body: x.body }); if (x.aspectHit) fresh.aspectHit = true; if (x.txHit) fresh.txHit = true; } }
+  if (m.auto.tests) fresh.tests = E.runTests(files);
+  return m.check(fresh);
+};
+ok(E.MISSIONS.every(m => m.auto && (m.auto.requests || m.auto.tests)), '모든 미션에 자동 채점 시나리오(auto)가 있음');
+E.MISSIONS.forEach(m => ok(autoRun({ ...E.STARTER, ...E.SOLUTIONS }, m), `자동 채점: 정답 코드로 미션 ${m.id} 통과`));
+E.MISSIONS.forEach(m => ok(!autoRun({ ...E.STARTER }, m), `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
+
 /* 순서 자유: 아무 미션도 다른 미션을 요구하지 않는다 (앱 기동 m1 제외) */
 const solo = { started: true, responses: [], aspectHit: true, txHit: false, tests: null };
 ok(E.MISSIONS.find(m => m.id === 'm10').check(solo) && !E.MISSIONS.find(m => m.id === 'm9').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');

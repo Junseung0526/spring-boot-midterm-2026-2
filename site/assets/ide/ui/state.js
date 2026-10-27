@@ -13,6 +13,7 @@ const state = {
   problems: [],
   git: { base: {}, commits: [], pushed: 1, branch: 'main' },
   migrated: false,
+  verify: {},          // 미션별 ✅ 정답 확인 결과 { ok, msg, detail }
 };
 
 const isConcept = p => !!IDE.concepts?.isConcept(p);
@@ -68,6 +69,7 @@ function resetProject() {
   state.files = { ...IDE.STARTER }; state.open = defaultOpen(); state.active = state.open[0];
   state.done = new Set(); state.session = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
   state.git = { base: { ...IDE.STARTER }, commits: [{ id: 'a1f3c9e', msg: 'Initial commit — 스프링부트4 실습 프로젝트', time: Date.now(), files: Object.keys(IDE.STARTER).length }], pushed: 1, branch: 'main' };
+  state.verify = {};
   save(); bus.emit('reset');
 }
 

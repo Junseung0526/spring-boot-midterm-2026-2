@@ -62,6 +62,7 @@ bus.on('goto', ({ file, find }) => {
   const idx = (state.files[file] || '').split('\n').findIndex(l => l.includes(find));
   setTimeout(() => { if (idx >= 0) { ed.goto(idx + 1); ed.flash(idx + 1); } }, 60);
 });
+bus.on('verify', m => runner.verify(m));
 bus.on('console-msg', m => con.line(IDE.highlight.esc(m.text), m.cls));
 /* Run / 테스트가 끝나면 아직 완료되지 않은 "현재 미션"이 왜 미완인지 콘솔에도 알려 준다 */
 bus.on('graded', kind => setTimeout(() => {
