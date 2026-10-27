@@ -31,4 +31,8 @@
 .ac[hidden] { display: none; } .aci { display: flex; align-items: center; gap: 8px; padding: 4px 8px; white-space: nowrap; overflow: hidden; border-radius: 5px; } .aci.on { background: #2e436e; } .aci b { color: #fff; } .aci small { color: var(--dim); } .aci em { color: #8aa; font-style: normal; margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
 .ico { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; color: #fff; } .ico.ia { background: #a58a2a; } .ico.ic { background: #3f9a4a; }
 
-.cg { padding: 10px 14px 4px; font-size: 11px; letter-spacing: .06em; color: var(--dim); font-weight: 600; } .tr.cn small { margin-left: auto; color: #6b9fff; font-size: 10.5px; }
+.cg { padding: 10px 14px 4px; font-size: 11px; letter-spacing: .06em; color: var(--dim); font-weight: 600; } .tr.cn small { margin-left: auto; color: #6b9fff; font-size: 10.5px; } .tr.cn small.done { color: #7fd37f; font-size: 13px; }
+
+/* 미션 위치 강조: 해당 줄이 노랗게 번쩍임 */
+.flashline { position: absolute; left: 0; right: 0; height: 20px; z-index: 1; pointer-events: none; background: #ffd16666; box-shadow: inset 3px 0 0 #ffb703; animation: flashline 3.2s ease-out forwards; }
+@keyframes flashline { 0%, 30% { background: #ffd166aa; } 55% { background: #ffd16633; } 70% { background: #ffd166aa; } 100% { background: #ffd16600; box-shadow: inset 3px 0 0 #ffb70300; } }

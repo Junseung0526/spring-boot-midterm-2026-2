@@ -15,7 +15,7 @@ const SOLUTIONS = {
   [SERVICE]: patch(SERVICE, [
     ['import java.util.List;', 'import org.springframework.stereotype.Service;\n\nimport java.util.List;'],
     ['// TODO 미션 1: 이 클래스를 스프링 빈(비즈니스 계층)으로 등록하세요\npublic class', '@Service\npublic class'],
-    ['        return PostResponse.from(saved);\n    }\n}', '        return PostResponse.from(saved);\n    }\n\n    public void delete(Long id) {\n        postRepository.deleteById(id);\n    }\n}'],
+    ['    // TODO 미션 5: 컨트롤러의 DELETE 가 호출할 delete(Long id) 메서드를 여기에 추가하세요\n}', '    public void delete(Long id) {\n        postRepository.deleteById(id);\n    }\n}'],
   ]),
   [CONTROLLER]: patch(CONTROLLER, [
     ['import org.springframework.web.bind.annotation.GetMapping;', 'import jakarta.validation.Valid;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.web.bind.annotation.DeleteMapping;\nimport org.springframework.web.bind.annotation.GetMapping;'],

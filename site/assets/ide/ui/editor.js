@@ -141,6 +141,8 @@ function create(host, hooks) {
     setProblems(map) { errs = map; render(); },
     setRunLines(l) { runLines = l; render(); },
     focus() { ta.focus(); },
+    /** 해당 줄을 잠시 노랗게 번쩍여 "여기를 보세요" 를 알려 준다 */
+    flash(line) { host.querySelectorAll('.flashline').forEach(n => n.remove()); const d = document.createElement('div'); d.className = 'flashline'; d.style.top = (line - 1) * LH + 'px'; $('.code').appendChild(d); setTimeout(() => d.remove(), 3200); },
     goto(line) { const v = ta.value.split('\n'); let off = 0; for (let i = 0; i < line - 1; i++) off += v[i].length + 1; ta.focus(); ta.setSelectionRange(off, off); scr.scrollTop = Math.max(0, (line - 6) * LH); caretEvt(); },
     value: () => ta.value,
   };

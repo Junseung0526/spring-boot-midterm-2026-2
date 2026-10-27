@@ -20,3 +20,9 @@
 .stabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; } .stabs button { padding: 4px 10px; background: var(--btn); } .stabs button.on { background: var(--accent); color: #fff; }
 .solcode { background: var(--code); padding: 10px; border-radius: 8px; font: 12.5px/1.55 var(--mono); overflow: auto; max-height: 50vh; margin: 0; color: var(--code-text); } .solcode .k { color: var(--kw); } .solcode .s { color: var(--str); } .solcode .a { color: var(--ann); } .solcode .c { color: var(--cm); } .solcode .n { color: var(--num); }
 .sact { display: flex; gap: 8px; margin-top: 10px; } .sact button { padding: 6px 12px; background: var(--btn); } .sact button:first-child { background: var(--accent); color: #fff; }
+
+/* 미션 카드: 클릭하면 위치로 이동 · 지금 할 미션 강조 */
+.mi { cursor: pointer; transition: border-color .15s, background .15s; } .mi:hover { border-color: #5b7fc2; background: #343a46; } .mi.done:hover { background: #2a402f; }
+.mi.current { border-color: var(--accent); background: #2a3349; box-shadow: 0 0 0 1px var(--accent) inset; }
+.next { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 10px; animation: pulse 1.6s infinite; }
+.ma .goto { color: #fff; background: #3b4f7d; padding: 3px 10px; border-radius: 6px; font-weight: 600; } .ma .goto:hover { background: var(--accent); }

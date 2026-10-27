@@ -118,6 +118,8 @@ public class PostService {
         Post saved = postRepository.save(new Post(request.title(), request.content()));
         return PostResponse.from(saved);
     }
+
+    // TODO 미션 5: 컨트롤러의 DELETE 가 호출할 delete(Long id) 메서드를 여기에 추가하세요
 }
 `,
 [J + 'controller/PostController.java']: `package com.example.blog.controller;

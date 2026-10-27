@@ -7,22 +7,29 @@ const { state, store, bus, highlight } = IDE;
 function create(host, modal, toast) {
   const openHints = new Set();
   const draw = () => {
+    const cur = IDE.MISSIONS.find(m => !state.done.has(m.id));
     const total = IDE.MISSIONS.length, n = IDE.MISSIONS.filter(m => state.done.has(m.id)).length;
     host.innerHTML = `<div class="mh"><span>진행도</span><span>${n} / ${total} 완료</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` +
-      IDE.MISSIONS.map((m, i) => `<div class="mi ${state.done.has(m.id) ? 'done' : ''}">
-        <div class="mt"><span class="ck">${state.done.has(m.id) ? '✔' : i + 1}</span><b>${m.title}</b></div>
+      IDE.MISSIONS.map((m, i) => `<div class="mi ${state.done.has(m.id) ? 'done' : ''} ${m.id === cur?.id ? 'current' : ''}" data-mission="${m.id}" title="클릭하면 작업 위치로 이동합니다">
+        <div class="mt"><span class="ck">${state.done.has(m.id) ? '✔' : i + 1}</span><b>${m.title}</b>${m.id === cur?.id ? '<span class="next">NEXT</span>' : ''}</div>
         <p>${m.goal}</p>
-        <div class="ma"><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">📖 개념</button></div>
+        <div class="ma"><button data-goto="${m.id}" class="goto">📍 위치로 이동</button><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">📖 개념</button></div>
         ${openHints.has(m.id) ? `<ol class="mh2">${m.hints.map(h => `<li>${h}</li>`).join('')}</ol>` : ''}</div>`).join('') +
       `<div class="mfoot"><button data-sol>✅ 정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
        <p class="mnote">TIP · 코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
   };
   function check() {
     let changed = false;
-    for (const m of IDE.MISSIONS) if (!state.done.has(m.id) && m.check(state.session)) { state.done.add(m.id); changed = true; toast(`🎉 미션 완료: ${m.title}`); }
+    for (const m of IDE.MISSIONS) if (!state.done.has(m.id) && m.check(state.session)) {
+      state.done.add(m.id); changed = true;
+      const nxt = IDE.MISSIONS.find(x => !state.done.has(x.id) && x !== m);
+      toast(`🎉 미션 완료: ${m.title}${nxt ? ` — 다음: ${nxt.title}` : ' — 모두 완료! 모의고사에 도전해 보세요'}`);
+    }
     if (changed) { store.save(); draw(); }
   }
   host.addEventListener('click', e => {
+    const g = e.target.closest('[data-goto]') || (!e.target.closest('button') ? e.target.closest('[data-mission]') : null);
+    if (g) { const id = g.dataset.goto || g.dataset.mission; bus.emit('goto', IDE.MISSIONS.find(m => m.id === id).target); return; }
     const h = e.target.closest('[data-hint]');
     if (h) { const id = h.dataset.hint; openHints.has(id) ? openHints.delete(id) : openHints.add(id); draw(); }
     const o = e.target.closest('[data-open]'); if (o) store.openFile(o.dataset.open);

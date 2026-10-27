@@ -1,4 +1,4 @@
-/* data/steps.js — 개념 애니메이션 단계 데이터.
+/* data/steps.js — 개념 애니메이션 단계 데이터. (append: true 이면 이전 단계 코드에 이어서 타이핑)
    on: 강조할 SVG 요소 id 목록 / t: 제목 / d: 설명 / code: 단계마다 타이핑되는 코드 */
 /* ────────────────────────────────────────────────────────────
    단계별 시뮬레이터 데이터
@@ -165,7 +165,7 @@ STEPS.psa = [
 STEPS.mvcpattern = [
   { on: ['m-user'], t: '① 사용자가 화면에서 요청', d: '사용자가 브라우저에서 URL 을 열거나 버튼을 눌러 요청을 보냅니다. MVC 의 시작은 항상 사용자 입력입니다.', code: 'GET /api/posts/1 HTTP/1.1' },
   { on: ['m-user', 'm-e1', 'm-ctl'], t: '② Controller 가 요청을 받는다', d: 'Controller 는 요청을 해석하고 필요한 값을 꺼내 Model 에게 일을 시킬 준비를 합니다. 비즈니스 로직 자체는 직접 하지 않습니다 (얇게 유지).', code: '@RestController\n@RequestMapping("/api/posts")\npublic class PostController {\n\n    @GetMapping("/{id}")\n    public PostResponse get(@PathVariable Long id) {' },
-  { on: ['m-ctl', 'm-e2', 'm-model'], t: '③ Model 에게 처리를 요청', d: 'Model 은 데이터와 비즈니스 규칙을 담당합니다. 스프링에서는 Service · Repository · Entity · DTO 가 Model 계층에 해당합니다.', code: '        return postService.find(id);   // Model(Service) 호출\n    }\n}' },
+  { on: ['m-ctl', 'm-e2', 'm-model'], append: true, t: '③ Model 에게 처리를 요청', d: 'Model 은 데이터와 비즈니스 규칙을 담당합니다. 스프링에서는 Service · Repository · Entity · DTO 가 Model 계층에 해당합니다.', code: '        return postService.find(id);   // Model(Service) 호출\n    }\n}' },
   { on: ['m-model', 'm-e3', 'm-ctl'], t: '④ 처리 결과(데이터)가 돌아온다', d: 'Model 이 조회/변경한 결과를 Controller 에게 돌려줍니다. Model 은 화면(View)이 무엇인지 전혀 모릅니다.', code: 'PostResponse(id=1, title="첫 글", content="Hello")' },
   { on: ['m-ctl', 'm-e4', 'm-view'], t: '⑤ Controller 가 View 를 선택', d: '결과를 어떤 View 로 보여 줄지 정합니다. @Controller 면 뷰 이름(Thymeleaf), @RestController 면 HttpMessageConverter 가 만든 JSON 이 View 역할을 합니다.', code: '// @Controller : 뷰 이름을 반환\nmodel.addAttribute("post", post);\nreturn "posts/detail";\n\n// @RestController : 객체 → JSON' },
   { on: ['m-view', 'm-e5', 'm-user'], t: '⑥ 사용자에게 응답', d: 'View 가 만든 HTML 또는 JSON 이 사용자에게 돌아가며 한 사이클이 끝납니다. 화면을 바꿔도 로직은 그대로, 로직을 바꿔도 화면은 그대로 — 이것이 역할 분리의 장점입니다.', code: 'HTTP/1.1 200 OK\nContent-Type: application/json\n\n{"id":1,"title":"첫 글","content":"Hello"}' },
