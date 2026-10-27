@@ -53,3 +53,8 @@
   .ide.noleft, .ide.noright, .ide.noleft.noright { grid-template-columns: 1fr; } .stripe { display: none; } .center { grid-template-rows: 36px 520px 260px; } .center.cmode { grid-template-rows: 36px auto 0; } .tw .twb { max-height: 360px; }
   .pillbtn span { display: none; }
 }
+
+/* 개념 애니메이션을 아직 열어 보지 않았다면 버튼이 반짝여 존재를 알림 */
+.pillbtn.hot { background: #3a5fc0; color: #fff; font-weight: 600; }
+body:not(.opened) .pillbtn.hot { animation: ring 1.8s infinite; } body:not(.opened) #sb-concepts { animation: pulse 1.4s infinite; color: #ffd166; }
+.sb { position: relative; }

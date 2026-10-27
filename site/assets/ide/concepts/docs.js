@@ -6,6 +6,7 @@ IDE.docs = {
 welcome: `<h1>Spring Boot 4 중간고사 — IntelliJ 실습실</h1>
 <p class="lead">왼쪽 <b>Concepts</b> 에서 개념을 고르면 <b>코드가 한 줄씩 타이핑되고 그림이 움직이며</b> 동작 원리를 보여 줍니다.
 개념을 이해했다면 <b>Project</b> 의 코드를 직접 고쳐 보고 ▶ Run 으로 실행해 보세요.</p>
+<p><a class="cta" data-open="concept:mvcpattern">▶ 애니메이션으로 배우기 시작</a> <span class="muted">열자마자 자동으로 재생됩니다 · 일시정지 / 이전 / 다음 버튼으로 단계 이동</span></p>
 <h3>학습 순서</h3>
 <div class="wcards">
   <a data-open="concept:mvcpattern"><i>1</i><b>MVC 패턴</b><span>Model · View · Controller 의 역할</span></a>

@@ -6,11 +6,14 @@ const { store } = IDE;
 
 function create(host) {
   let current = null;
+  // 시작 화면 카드: 끝까지 본 개념에 ✓ 완료 표시
+  const markSeen = () => { if (current?.kind === 'doc' && current.concept.doc === 'welcome') host.querySelectorAll('[data-open^="concept:"]').forEach(a => a.classList.toggle('seen', IDE.concepts.seen.has(a.dataset.open.slice(8)))); };
+  IDE.bus.on('seen', markSeen);
   const destroy = () => { current?.destroy?.(); current = null; };
   function show(concept) {
     destroy();
-    if (concept.kind === 'scene') { host.innerHTML = ''; current = IDE.player.mount(host, concept); }
-    else { host.innerHTML = `<div class="doc">${IDE.docs[concept.doc]}</div>`; }
+    if (concept.kind === 'scene') { IDE.concepts.markOpened(); host.innerHTML = ''; current = IDE.player.mount(host, concept); }
+    else { host.innerHTML = `<div class="doc">${IDE.docs[concept.doc]}</div>`; current = { kind: 'doc', concept }; markSeen(); }
     host.scrollTop = 0;
   }
   // 문서 안의 카드/링크: data-open="concept:ioc" | "<파일경로>", data-memo="ann|exam"

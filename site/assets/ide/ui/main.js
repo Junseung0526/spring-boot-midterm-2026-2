@@ -42,6 +42,12 @@ IDE.ConceptsList.create($('#clist'));
 IDE.Missions.create($('#missions'), $('#modal'), toast);
 
 bus.on('console', () => $('#center').classList.remove('cmode'));   // 개념 탭이 열려 있어도 Run/HTTP 결과는 보이게
+/* 미션 클릭 → 해당 파일을 열고 TODO 줄로 이동 + 번쩍임 */
+bus.on('goto', ({ file, find }) => {
+  store.openFile(file);
+  const idx = (state.files[file] || '').split('\n').findIndex(l => l.includes(find));
+  setTimeout(() => { if (idx >= 0) { ed.goto(idx + 1); ed.flash(idx + 1); } }, 60);
+});
 bus.on('tabs', showActive);
 bus.on('reload', showActive);
 bus.on('reset', () => { if (state.server.running) runner.stop(true); con.clear(); IDE.analysis.run(); showActive(); });
@@ -79,6 +85,13 @@ const showTw = which => {          // which: 'tree' | 'clist' — 같은 걸 다
 };
 $('#sb-project').addEventListener('click', () => showTw('tree'));
 $('#sb-concepts').addEventListener('click', () => showTw('clist'));
+$('#btn-concepts').addEventListener('click', () => {
+  showTw('clist');
+  if (!state.open.some(p => IDE.concepts.isConcept(p) && IDE.concepts.fromPath(p).kind === 'scene')) store.openFile('concept:mvcpattern');
+});
+document.body.classList.toggle('opened', IDE.concepts.isOpened());
+bus.on('opened', () => document.body.classList.add('opened'));
+if (!IDE.concepts.isOpened()) showTw('clist');   // 첫 방문: 개념 애니메이션 목록을 먼저 보여 준다
 $('#btn-ann').addEventListener('click', () => IDE.memo.open('ann'));
 $('#btn-exam').addEventListener('click', () => IDE.memo.open('exam'));
 $('#sb-tasks').addEventListener('click', () => toggleTw('#sb-tasks', 'noright'));
