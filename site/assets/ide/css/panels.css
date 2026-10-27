@@ -59,3 +59,7 @@
 .dbox { width: min(1000px, 94vw); max-height: 88vh; display: flex; flex-direction: column; background: var(--editor); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .dt { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--border); } .dt small { color: var(--dim); } .dstat { margin-left: auto; } .dstat .a { color: var(--ok); font-style: normal; } .dstat .d { color: var(--err); font-style: normal; } .dt button { padding: 3px 9px; background: var(--btn); }
 .dbody { overflow: auto; font: 12.5px/20px var(--mono); padding: 6px 0; } .dl { display: flex; white-space: pre; } .dl i { flex: none; width: 46px; text-align: right; padding-right: 10px; color: var(--gutter-text); font-style: normal; } .dl b { flex: none; width: 18px; text-align: center; font-weight: 400; color: var(--dim); } .dl.add { background: #1f3326; } .dl.add b { color: var(--ok); } .dl.del { background: #3a2427; } .dl.del b { color: var(--err); } .dh { padding: 0 60px; color: var(--dim); background: #25272c; }
+
+/* 내 코드 진단 */
+.diag { margin: 4px 0 8px; padding: 7px 10px; background: #2a3a3a; border-left: 3px solid #4fc3b0; border-radius: 0 8px 8px 0; color: #cfe9e4; line-height: 1.55; } .diag b { color: #7fe0cf; margin-right: 4px; }
+.mh2 .dg { margin: 6px 0 2px; font-weight: 700; color: #7fe0cf; } .mh2 .dg + ul { margin: 0 0 6px; padding-left: 18px; color: #cfe9e4; } .mh2 ol { margin: 0; padding-left: 18px; color: #d7c88a; }

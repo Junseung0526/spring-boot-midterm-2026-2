@@ -68,6 +68,18 @@ if (boot.ok) {
   E.MISSIONS.forEach(m => ok(m.check(st), `미션 ${m.id} (${m.title}) 통과`));
   E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
 }
+/* 현재 코드 진단 힌트: 시작 코드에서 모든 미션이 구체적인 진단을 내고, 상태가 바뀌면 문구가 바뀐다 */
+const dctx = (files, extra = {}) => ({ files, session: { responses: [], tests: null }, server: { running: false, dirty: false }, problems: E.javaProblems(E.buildModel(files)), tests: null, ...extra });
+const d0 = dctx({ ...E.STARTER });
+ok(E.MISSIONS.every(m => (m.diagnose(d0)[0] || '').length > 10), '시작 코드: 모든 미션이 구체적인 진단 문구를 냄');
+const svcPath = J + 'service/PostService.java';
+const noImport = { ...E.STARTER, [svcPath]: E.STARTER[svcPath].replace('// TODO 미션 1: 이 클래스를 스프링 빈(비즈니스 계층)으로 등록하세요\npublic class', '@Service\npublic class') };
+ok(/import/.test(E.MISSIONS[0].diagnose(dctx(noImport))[0]), '진단: @Service 만 있고 import 가 없으면 import 를 안내');
+ok(/Run/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }))[0]), '진단: 코드가 맞고 앱이 꺼져 있으면 Run 안내');
+ok(/Rerun/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }, { server: { running: true, dirty: true } }))[0]), '진단: 앱 실행 중 코드가 바뀌면 Rerun 안내');
+const onlySvc = { ...E.STARTER, [svcPath]: E.SOLUTIONS[svcPath] };
+ok(E.MISSIONS[9].diagnose(dctx(onlySvc, { tests: E.runTests(onlySvc) })).some(x => /미션 3/.test(x)), '진단: 실패한 테스트를 해당 미션(예: create → 미션 3)과 연결');
+
 /* 순서 자유: 아무 미션도 다른 미션을 요구하지 않는다 (앱 기동 m1 제외) */
 const solo = { started: true, responses: [], aspectHit: true, txHit: false, tests: null };
 ok(E.MISSIONS.find(m => m.id === 'm8').check(solo) && !E.MISSIONS.find(m => m.id === 'm7').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');
