@@ -8,7 +8,7 @@ IntelliJ 처럼 코드를 직접 작성 · 실행 · 테스트하면서 **MVC �
 |---|---|
 | **개념 애니메이션** | 왼쪽 💡 Concepts — 코드가 타이핑되고 SVG 가 움직이며 자동 재생. 장면이 끝나면 이해 확인 퀴즈 · 관련 실습 · 다음 개념으로 이어짐 |
 | **IntelliJ New UI** | 자동완성 · 자동 import · 빨간 밑줄 · Run 콘솔 · HTTP Client(`requests.http`) · 테스트 실행(✔/✖ 거터) |
-| **10개 미션 (7단계)** | IoC/DI → MVC 조회 → 생성(201·400) → 수정/삭제 → `@Transactional` → AOP → 테스트. 행동으로 채점하므로 **순서를 바꿔도, 미션 밖의 코드를 써도** 동작 |
+| **12개 미션 (8단계)** | 컨트롤러를 빈 뼈대에서 시작해 **CRUD 를 한 걸음씩 직접 작성**: IoC/DI → 조회(목록·단건) → 생성(만들기·201·400) → 수정 → 삭제 → `@Transactional` → AOP → 테스트. 다음 미션은 앞 미션을 끝내야 열리고("미리 열기"로 건너뛰기 가능), 미션마다 채점 기준·정답 예시·**내 현재 코드를 읽는 힌트**가 있음. 행동으로 채점하므로 순서를 바꿔도, 미션 밖의 코드를 써도 동작 |
 | **처음부터 직접 작성** | Project 의 `＋ New` 로 Controller / Service / Repository / Entity / DTO / Config / Test 파일 생성 |
 | **테스트 코드** | `@SpringBootTest` · `@WebMvcTest`(+`@MockitoBean`) · `@DataJpaTest` · Mockito 단위 테스트 14개가 프로젝트에 포함 |
 | **Git(시뮬레이션)** | 변경 파일 색상, Commit 도구창(Ctrl+K) · Diff · 로그 · Push |

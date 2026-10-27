@@ -66,3 +66,9 @@
 
 .crit { margin: 2px 0 6px; font-size: 11.5px; color: #98a1ab; line-height: 1.5; } .crit b { color: #b9c2cc; }
 .ln.ok { color: #7fd37f; font-family: var(--ui); font-weight: 600; margin: 2px 0; }
+
+/* 아직 열리지 않은 미션: 내용을 DOM 에 넣지 않고 흐린 막대만 보여 예측할 수 없게 */
+.mi.locked { opacity: .5; cursor: default; border-style: dashed; } .mi.locked:hover { opacity: .75; background: #313338; border-color: #3c3f45; }
+.sk { display: block; height: 10px; margin: 8px 0; border-radius: 5px; background: #4a4d55; filter: blur(2.5px); } .mt .sk { margin: 5px 0; flex: 1; } .sk.w60 { width: 60%; } .sk.w70 { width: 70%; } .sk.w95 { width: 95%; }
+.lockmsg { color: var(--dim); font-size: 11.5px; } .lockedstage { color: #6b7078; } .snip { margin: 4px 0 0; padding: 8px 10px; background: var(--code); border-radius: 6px; font: 11.5px/1.55 var(--mono); overflow-x: auto; color: var(--code-text); white-space: pre; }
+.snip .k { color: var(--kw); } .snip .s { color: var(--str); } .snip .a { color: var(--ann); } .snip .c { color: var(--cm); } .snip .n { color: var(--num); }
