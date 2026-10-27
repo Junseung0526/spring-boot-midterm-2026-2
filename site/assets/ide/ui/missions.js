@@ -8,7 +8,7 @@ function create(host, modal, toast) {
   const openHints = new Set();
   const draw = () => {
     const total = IDE.MISSIONS.length, n = IDE.MISSIONS.filter(m => state.done.has(m.id)).length;
-    host.innerHTML = `<div class="mh"><b>Tasks</b><span>${n} / ${total}</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` +
+    host.innerHTML = `<div class="mh"><span>진행도</span><span>${n} / ${total} 완료</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` +
       IDE.MISSIONS.map((m, i) => `<div class="mi ${state.done.has(m.id) ? 'done' : ''}">
         <div class="mt"><span class="ck">${state.done.has(m.id) ? '✔' : i + 1}</span><b>${m.title}</b></div>
         <p>${m.goal}</p>

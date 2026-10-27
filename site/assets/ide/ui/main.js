@@ -22,7 +22,7 @@ const ed = IDE.Editor.create($('#editor'), {
 
 function showActive() {
   const p = state.active;
-  $('#st-file').textContent = p ? p.replace('src/main/java/', '').replace(/\//g, ' › ') : '';
+  $('#st-file').textContent = p ? 'blog › ' + p.replace(/\//g, ' › ') : '';
   ed.setFile(p || '', p ? state.files[p] : '');
   decorate();
 }
@@ -60,8 +60,11 @@ bus.on('edit', () => { if (state.server.running) paintServer(false); });
 $('#btn-run').addEventListener('click', () => runner.run());
 $('#btn-rerun').addEventListener('click', () => runner.run());
 $('#btn-stop').addEventListener('click', () => runner.stop());
-$('#btn-left').addEventListener('click', () => $('.ide').classList.toggle('noleft'));
-$('#btn-right').addEventListener('click', () => $('.ide').classList.toggle('noright'));
+/* 스트립: 도구창 토글 + 하단 도구창 탭 열기 */
+const toggleTw = (btn, cls) => { const off = $('.ide').classList.toggle(cls); $(btn).classList.toggle('on', !off); };
+$('#sb-project').addEventListener('click', () => toggleTw('#sb-project', 'noleft'));
+$('#sb-tasks').addEventListener('click', () => toggleTw('#sb-tasks', 'noright'));
+document.querySelectorAll('[data-console]').forEach(b => b.addEventListener('click', () => con.show(b.dataset.console)));
 document.addEventListener('keydown', e => {
   if (e.key === 'F10' && e.shiftKey) { e.preventDefault(); runner.run(); }
   if (e.key === 'F2' && e.ctrlKey) { e.preventDefault(); runner.stop(); }

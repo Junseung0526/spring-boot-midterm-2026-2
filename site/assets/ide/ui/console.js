@@ -7,7 +7,7 @@ const { esc } = highlight;
 
 function create(host, hooks) {
   host.innerHTML = `
-    <div class="bt"><button data-t="run" class="on">▶ Run</button><button data-t="problems">⚠ Problems <b class="cnt" id="pcnt"></b></button><button data-t="http">≋ HTTP Response</button><span class="sp"></span><button data-clear title="지우기">🗑</button></div>
+    <div class="bt"><button data-t="run" class="on"><svg class="ic"><use href="#i-term"/></svg>Run</button><button data-t="problems"><svg class="ic"><use href="#i-warn"/></svg>Problems <b class="cnt" id="pcnt"></b></button><button data-t="http"><svg class="ic"><use href="#i-http"/></svg>HTTP Response</button><span class="sp"></span><button data-clear title="지우기">Clear</button></div>
     <div class="bp" data-p="run"></div><div class="bp" data-p="problems" hidden></div><div class="bp" data-p="http" hidden></div>`;
   const pane = n => host.querySelector(`[data-p="${n}"]`), runP = pane('run');
   const show = n => { host.querySelectorAll('.bt button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === n)); host.querySelectorAll('.bp').forEach(p => { p.hidden = p.dataset.p !== n; }); };
