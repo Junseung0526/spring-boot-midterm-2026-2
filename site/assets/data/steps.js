@@ -173,16 +173,16 @@ STEPS.mvcpattern = [
 
 /* ── 테스트 (SVG: ide/concepts/svg/testing.js) ── */
 STEPS.testing = [
-  { on: ['t-all', 't-client', 't-ctl', 't-svc', 't-repo', 't-db'], t: '① @SpringBootTest : 전체를 띄우는 통합 테스트',
+  { on: ['t-all', 't-client', 't-e1', 't-ctl', 't-e2', 't-svc', 't-e3', 't-repo', 't-e4', 't-db'], t: '① @SpringBootTest : 전체를 띄우는 통합 테스트',
     d: '실제 애플리케이션과 똑같이 모든 빈을 만들어 테스트합니다. 가장 현실적이지만 컨텍스트를 전부 띄우므로 느립니다. contextLoads() 는 "앱이 뜨는가" 만 확인하는 기본 테스트입니다.',
     code: '@SpringBootTest\nclass BlogApplicationTests {\n\n    @Test\n    void contextLoads() {   // 빈 등록/주입이 틀리면 여기서 실패\n    }\n}' },
   { on: ['t-web', 't-client', 't-e1', 't-ctl'], t: '② @WebMvcTest : 웹 계층만 로드하는 슬라이스 테스트',
     d: '컨트롤러와 MVC 인프라(HandlerMapping, JSON 변환, 검증)만 올립니다. Service · Repository 는 로드되지 않아서 훨씬 빠릅니다. 대신 컨트롤러가 의존하는 빈은 직접 제공해야 합니다.',
     code: '@WebMvcTest(PostController.class)\nclass PostControllerTest {\n\n    @Autowired\n    MockMvc mockMvc;   // 서버 없이 요청을 시뮬레이션\n}' },
-  { on: ['t-web', 't-mock', 't-ctl', 't-e2'], t: '③ @MockitoBean : 가짜 Service 를 컨테이너에 등록',
+  { on: ['t-web', 't-ctl', 't-e2m', 't-mock'], t: '③ @MockitoBean : 가짜 Service 를 컨테이너에 등록',
     d: '슬라이스에는 진짜 Service 가 없으므로 가짜(mock)를 빈으로 등록합니다. Boot 4 에서는 제거된 @MockBean 대신 @MockitoBean 을 씁니다. given(...).willReturn(...) 으로 가짜가 돌려줄 값을 정해 둡니다.',
     code: '@MockitoBean            // Boot 4 : @MockBean 은 제거됨\nPostService postService;\n\n@Test\nvoid get() throws Exception {\n    given(postService.find(1L))\n        .willReturn(new PostResponse(1L, "제목", "내용"));' },
-  { on: ['t-client', 't-e1', 't-ctl', 't-mock'], t: '④ MockMvc 로 요청 → 상태코드 · JSON 검증',
+  { on: ['t-client', 't-e1', 't-ctl', 't-e2m', 't-mock'], t: '④ MockMvc 로 요청 → 상태코드 · JSON 검증',
     d: 'perform(get(...)) 로 요청을 보내고 andExpect(...) 로 응답을 검증합니다. 컨트롤러의 매핑, @Valid, @ResponseStatus 가 정말 의도대로 동작하는지 확인하는 테스트입니다.',
     code: '    mockMvc.perform(get("/api/posts/1"))\n            .andExpect(status().isOk())\n            .andExpect(jsonPath("$.title").value("제목"));\n}' },
   { on: ['t-jpa', 't-repo', 't-db', 't-e4'], t: '⑤ @DataJpaTest : Repository + H2 만 로드',
