@@ -507,5 +507,8 @@ GET http://localhost:8080/api/posts/abc
 `,
 };
 
-Object.assign(IDE, { STARTER, JAVA_ROOT: J, TEST_ROOT: T });
+// 시작 코드가 바뀌면 값이 달라지는 간단한 해시 — 저장된 예전 코드와 새 시작 코드가 어긋나는 것을 감지한다
+const STARTER_VER = (() => { let h = 5381; for (const k of Object.keys(STARTER).sort()) { const t = k + STARTER[k]; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; } return (h >>> 0).toString(36); })();
+
+Object.assign(IDE, { STARTER, STARTER_VER, JAVA_ROOT: J, TEST_ROOT: T });
 })();

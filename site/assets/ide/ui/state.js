@@ -12,6 +12,7 @@ const state = {
   server: { running: false, ctx: null, dirty: false },
   problems: [],
   git: { base: {}, commits: [], pushed: 1, branch: 'main' },
+  migrated: false,
 };
 
 const isConcept = p => !!IDE.concepts?.isConcept(p);
@@ -20,6 +21,9 @@ const defaultOpen = () => ['concept:welcome', IDE.JAVA_ROOT + 'service/PostServi
 function load() {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { /* 저장소 사용 불가 */ }
+  // 저장 당시의 시작 코드 버전이 다르면(사이트가 업데이트됨) 낡은 코드가 새 파일과 어긋나 앱이 안 뜰 수 있으므로 새 버전으로 초기화
+  state.migrated = !!(saved.ver && saved.ver !== IDE.STARTER_VER) || !!(saved.files && !saved.ver);
+  if (state.migrated) saved = {};
   state.files = { ...IDE.STARTER, ...(saved.files || {}) };
   state.open = (saved.open || []).filter(p => p in state.files || isConcept(p));
   if (!state.open.length) state.open = defaultOpen();
@@ -39,7 +43,7 @@ function save() {
     const files = {};
     for (const [p, c] of Object.entries(state.files)) if (c !== IDE.STARTER[p]) files[p] = c;
     const baseDiff = {}; for (const [p, c] of Object.entries(state.git.base)) if (c !== IDE.STARTER[p]) baseDiff[p] = c;
-    try { localStorage.setItem(KEY, JSON.stringify({ files, open: state.open, active: state.active, done: [...state.done], git: { baseDiff, commits: state.git.commits, pushed: state.git.pushed, branch: state.git.branch } })); } catch { /* 무시 */ }
+    try { localStorage.setItem(KEY, JSON.stringify({ ver: IDE.STARTER_VER, files, open: state.open, active: state.active, done: [...state.done], git: { baseDiff, commits: state.git.commits, pushed: state.git.pushed, branch: state.git.branch } })); } catch { /* 무시 */ }
   }, 250);
 }
 const modified = p => state.files[p] !== IDE.STARTER[p];

@@ -63,3 +63,6 @@
 /* 내 코드 진단 */
 .diag { margin: 4px 0 8px; padding: 7px 10px; background: #2a3a3a; border-left: 3px solid #4fc3b0; border-radius: 0 8px 8px 0; color: #cfe9e4; line-height: 1.55; } .diag b { color: #7fe0cf; margin-right: 4px; }
 .mh2 .dg { margin: 6px 0 2px; font-weight: 700; color: #7fe0cf; } .mh2 .dg + ul { margin: 0 0 6px; padding-left: 18px; color: #cfe9e4; } .mh2 ol { margin: 0; padding-left: 18px; color: #d7c88a; }
+
+.crit { margin: 2px 0 6px; font-size: 11.5px; color: #98a1ab; line-height: 1.5; } .crit b { color: #b9c2cc; }
+.ln.ok { color: #7fd37f; font-family: var(--ui); font-weight: 600; margin: 2px 0; }

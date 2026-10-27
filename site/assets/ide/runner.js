@@ -20,6 +20,9 @@ function create(con) {
 
   async function run() {
     if (running) return;
+    try { await runInner(); } catch (e) { con.line('❌ 실행 중 오류: ' + IDE.highlight.esc(e.message || e), 'err'); state.server = { running: false, ctx: null, dirty: false }; status(); } finally { running = false; }
+  }
+  async function runInner() {
     if (state.server.running) stop(true);
     running = true; con.clear(); con.show('run'); bus.emit('building');
     const files = { ...state.files };
@@ -40,7 +43,7 @@ function create(con) {
       con.line('', ''); con.line('Process finished with exit code 1', 'dim');
       state.server = { running: false, ctx: null, dirty: false };
     }
-    running = false; status(); bus.emit('session');
+    running = false; status(); bus.emit('session'); bus.emit('graded', 'run');
   }
   function stop(silent) {
     if (!state.server.running) return;
@@ -75,7 +78,7 @@ function create(con) {
       r.results = [...keep, ...r.results];
       r.summary = { pass: 0, fail: 0, skip: 0 }; r.results.forEach(x => { r.summary[x.status]++; });
     }
-    state.session.tests = r; con.showTests(r); bus.emit('tests', r); bus.emit('session'); bus.emit('testing', false);
+    state.session.tests = r; con.showTests(r); bus.emit('tests', r); bus.emit('session'); bus.emit('testing', false); bus.emit('graded', 'tests');
     return r;
   }
   return { run, stop, send, runTests };

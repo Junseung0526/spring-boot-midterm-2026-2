@@ -62,6 +62,13 @@ bus.on('goto', ({ file, find }) => {
   const idx = (state.files[file] || '').split('\n').findIndex(l => l.includes(find));
   setTimeout(() => { if (idx >= 0) { ed.goto(idx + 1); ed.flash(idx + 1); } }, 60);
 });
+bus.on('console-msg', m => con.line(IDE.highlight.esc(m.text), m.cls));
+/* Run / 테스트가 끝나면 아직 완료되지 않은 "현재 미션"이 왜 미완인지 콘솔에도 알려 준다 */
+bus.on('graded', kind => setTimeout(() => {
+  const cur = IDE.MISSIONS.find(m => !state.done.has(m.id)); if (!cur) return;
+  const d = (cur.diagnose ? cur.diagnose({ files: state.files, session: state.session, server: state.server, problems: state.problems, tests: state.session.tests }) : [])[0];
+  if (d) con.line(`📋 미션 ${cur.id.slice(1)} (${IDE.highlight.esc(cur.title)}) 아직 미완 — ${IDE.highlight.esc(d)}`, 'hint');
+}, 80));
 bus.on('tabs', showActive);
 bus.on('reload', showActive);
 bus.on('reset', () => { if (state.server.running) runner.stop(true); con.clear(); IDE.analysis.run(); showActive(); });
@@ -129,5 +136,6 @@ document.addEventListener('keydown', e => {
 
 IDE.analysis.run();
 showActive();
+if (state.migrated) setTimeout(() => toast('사이트가 업데이트되어 저장된 예전 코드를 새 시작 코드로 초기화했어요'), 600);
 paintServer(false);
 })();

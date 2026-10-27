@@ -17,6 +17,7 @@ function create(host, modal, toast) {
       IDE.MISSIONS.map((m, i) => (i === 0 || IDE.MISSIONS[i - 1].stage !== m.stage ? `<div class="stage">${m.stage}</div>` : '') + `<div class="mi ${state.done.has(m.id) ? 'done' : ''} ${m.id === cur?.id ? 'current' : ''} ${!state.done.has(m.id) && m.id !== cur?.id ? 'upcoming' : ''}" data-mission="${m.id}" title="클릭하면 작업 위치로 이동합니다">
         <div class="mt"><span class="ck">${state.done.has(m.id) ? '✔' : i + 1}</span><b>${m.title}</b>${m.id === cur?.id ? '<span class="next">NEXT</span>' : ''}</div>
         <p>${m.goal}</p>
+        <div class="crit">📏 <b>채점 기준</b> ${esc(m.criteria || '')}</div>
         ${m.id === cur?.id && diagOf(m)[0] ? `<div class="diag"><b>🔎 지금 코드</b> ${esc(diagOf(m)[0])}</div>` : ''}
         <div class="ma"><button data-goto="${m.id}" class="goto">📍 위치로 이동</button><button data-hint="${m.id}">💡 힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">📖 개념</button></div>
         ${openHints.has(m.id) ? `<div class="mh2">${diagOf(m).length ? `<div class="dg">🔎 현재 코드 진단</div><ul>${diagOf(m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="dg">일반 힌트</div><ol>${m.hints.map(h => `<li>${esc(h)}</li>`).join('')}</ol></div>` : ''}</div>`).join('') +
@@ -30,6 +31,7 @@ function create(host, modal, toast) {
       state.done.add(m.id); changed = true;
       const nxt = IDE.MISSIONS.find(x => !state.done.has(x.id) && x !== m);
       toast(`🎉 미션 완료: ${m.title}${nxt ? ` — 다음: ${nxt.title}` : ' — 모두 완료! 모의고사에 도전해 보세요'}`);
+      bus.emit('console-msg', { text: `🎉 미션 ${m.id.slice(1)} 완료 — ${m.title}${nxt ? '   (다음: 미션 ' + nxt.id.slice(1) + ' ' + nxt.title + ')' : '   (모든 미션 완료!)'}`, cls: 'ok' });
     }
     if (changed) { store.save(); draw(); }
   }
