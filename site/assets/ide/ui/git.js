@@ -47,11 +47,12 @@ function showDiff(path) {
 
 /* ── Commit 도구창 ── */
 function create(host, toast) {
-  const sel = new Set(); let msg = '', seeded = false;
+  const off = new Set(); let msg = '';          // 사용자가 직접 체크 해제한 파일 (나머지 변경은 항상 선택됨 — IntelliJ 와 동일)
+  const selected = ch => ch.filter(c => !off.has(c.path)).map(c => c.path);
   const suggest = () => { const done = IDE.MISSIONS.filter(m => state.done.has(m.id)); const last = done[done.length - 1]; return last ? `feat: ${last.title}` : 'chore: 코드 수정'; };
   function draw() {
-    const ch = changes(); [...sel].forEach(p => { if (!ch.some(c => c.path === p)) sel.delete(p); });
-    if (!seeded) { ch.forEach(c => sel.add(c.path)); seeded = ch.length > 0; }
+    const ch = changes(); [...off].forEach(p => { if (!ch.some(c => c.path === p)) off.delete(p); });
+    const sel = new Set(selected(ch));
     if (!msg && ch.length) msg = suggest();
     const unpushed = Math.max(0, state.git.commits.length - state.git.pushed);
     host.innerHTML = `<div class="gh"><b>Changes</b> <span class="gcount">${ch.length}</span><span class="gsp"></span><button data-sel-all>${sel.size === ch.length && ch.length ? '전체 해제' : '전체 선택'}</button></div>
@@ -65,14 +66,15 @@ function create(host, toast) {
   }
   host.addEventListener('click', e => {
     const cb = e.target.closest('input[data-path]');
-    if (cb) { cb.checked ? sel.add(cb.dataset.path) : sel.delete(cb.dataset.path); msg = host.querySelector('#gmsg').value; draw(); return; }
-    if (e.target.closest('[data-sel-all]')) { const ch = changes(); msg = host.querySelector('#gmsg').value; if (sel.size === ch.length) sel.clear(); else ch.forEach(c => sel.add(c.path)); draw(); return; }
+    if (cb) { cb.checked ? off.delete(cb.dataset.path) : off.add(cb.dataset.path); msg = host.querySelector('#gmsg').value; draw(); return; }
+    if (e.target.closest('[data-sel-all]')) { const ch = changes(); msg = host.querySelector('#gmsg').value; if (selected(ch).length === ch.length) ch.forEach(c => off.add(c.path)); else off.clear(); draw(); return; }
     const f = e.target.closest('[data-diff]'); if (f && !e.target.closest('input')) { e.preventDefault(); showDiff(f.dataset.diff); return; }
     if (e.target.closest('[data-commit]')) {
       const m = host.querySelector('#gmsg').value.trim();
       if (!m) { toast('커밋 메시지를 입력하세요'); return; }
-      if (!sel.size) { toast('커밋할 파일을 선택하세요'); return; }
-      const n = sel.size; commit([...sel], m); sel.clear(); msg = ''; seeded = false; toast(`✔ Commit 완료 — ${n}개 파일 (${state.git.commits[0].id})`); return;
+      const picked = selected(changes());
+      if (!picked.length) { toast('커밋할 파일을 선택하세요'); return; }
+      const n = picked.length; commit(picked, m); off.clear(); msg = ''; toast(`✔ Commit 완료 — ${n}개 파일 (${state.git.commits[0].id})`); return;
     }
     if (e.target.closest('[data-push]')) { state.git.pushed = state.git.commits.length; store.save(); bus.emit('git'); toast('⬆ origin/main 으로 push 했습니다 (시뮬레이션)'); }
   });
