@@ -8,7 +8,9 @@ function create(host) {
   const draw = () => {
     host.innerHTML = state.open.map(p => {
       const err = state.problems.some(x => x.path === p && x.sev === 'error');
-      return `<div class="tab ${p === state.active ? 'on' : ''} ${err ? 'haserr' : ''}" data-file="${p}" title="${p}"><span>${p.split('/').pop()}</span><b class="x" data-close="${p}" aria-label="닫기">×</b></div>`;
+      const c = IDE.concepts.isConcept(p) ? IDE.concepts.fromPath(p) : null;
+      const label = c ? `<i class="fi f-doc">${c.icon}</i><span>${c.title}</span>` : `<span>${p.split('/').pop()}</span>`;
+      return `<div class="tab ${p === state.active ? 'on' : ''} ${err ? 'haserr' : ''}" data-file="${p}" title="${c ? c.title : p}">${label}<b class="x" data-close="${p}" aria-label="닫기">×</b></div>`;
     }).join('');
   };
   host.addEventListener('click', e => {

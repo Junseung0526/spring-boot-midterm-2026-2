@@ -13,13 +13,14 @@ const state = {
   problems: [],
 };
 
-const defaultOpen = () => [IDE.JAVA_ROOT + 'service/PostService.java', 'requests.http'];
+const isConcept = p => !!IDE.concepts?.isConcept(p);
+const defaultOpen = () => ['concept:welcome', IDE.JAVA_ROOT + 'service/PostService.java', 'requests.http'];
 
 function load() {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { /* 저장소 사용 불가 */ }
   state.files = { ...IDE.STARTER, ...(saved.files || {}) };
-  state.open = (saved.open || []).filter(p => p in state.files);
+  state.open = (saved.open || []).filter(p => p in state.files || isConcept(p));
   if (!state.open.length) state.open = defaultOpen();
   state.active = state.open.includes(saved.active) ? saved.active : state.open[0];
   state.done = new Set(saved.done || []);
@@ -36,7 +37,7 @@ function save() {
 const modified = p => state.files[p] !== IDE.STARTER[p];
 
 function openFile(p) {
-  if (!(p in state.files)) return;
+  if (!(p in state.files) && !isConcept(p)) return;
   if (!state.open.includes(p)) state.open.push(p);
   state.active = p; save(); bus.emit('tabs');
 }

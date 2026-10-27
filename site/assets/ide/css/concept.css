@@ -1,7 +1,11 @@
 /* css/concept.css — 개념 탭(코드 타이핑 + SVG 애니메이션 + 문서). 색상은 theme.css 변수를 따른다 */
 #concept { overflow: auto; background: var(--editor); min-height: 0; }
 #concept[hidden] { display: none; }
-.cp { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; padding: 16px; min-height: 100%; }
+/* 위: 다이어그램 전체 폭 / 아래: 설명 카드 + 타이핑 코드 */
+.cp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding: 16px; align-content: start; }
+.cp-l { grid-column: 1 / -1; }
+.cp-r { display: contents; }
+.cp-card { grid-column: 1; align-self: start; } .cp-code { grid-column: 2; }
 .cp-svg { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
 .cp-svg svg { width: 100%; height: auto; display: block; }
 .cp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
@@ -31,7 +35,7 @@
 .cp svg .sn.on .box { stroke: var(--warn); stroke-width: 3; } .cp svg .sn.on .edge { stroke: var(--warn); stroke-width: 3; marker-end: url(#arO); }
 .cp svg .sn.on .badge { fill: var(--warn); } .cp svg .sn.on .bt { fill: #1e1f22; }
 .cp svg .pkt { fill: #ffd166; stroke: #fff; stroke-width: 1.5; filter: drop-shadow(0 0 4px #ffb703); }
-@media (max-width: 1100px) { .cp { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .cp { grid-template-columns: 1fr; } .cp-card, .cp-code { grid-column: 1; } }
 /* 문서 패널 */
 .doc { max-width: 940px; margin: 0 auto; padding: 24px 28px 60px; line-height: 1.75; }
 .doc h1 { font-size: 26px; color: #fff; margin: 4px 0 8px; } .doc h2 { color: #fff; } .doc h3 { color: #dfe1e5; margin-top: 1.6em; } .doc .lead { font-size: 15px; } .doc .muted { color: var(--dim); }

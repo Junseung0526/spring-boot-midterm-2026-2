@@ -12,6 +12,8 @@
 <link rel="stylesheet" href="assets/ide/css/layout.css">
 <link rel="stylesheet" href="assets/ide/css/editor.css">
 <link rel="stylesheet" href="assets/ide/css/panels.css">
+<link rel="stylesheet" href="assets/ide/css/concept.css">
+<link rel="stylesheet" href="assets/memo/memo.css">
 </head>
 <body>
 <!-- 아이콘 스프라이트 + 화살표 마커 -->
@@ -20,6 +22,7 @@
   <symbol id="i-run" viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-stop" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-rerun" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.8-3.8M13 2.5v3h-3"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 16 16"><path d="M6 12.5h4M6.5 14h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></symbol>
   <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
   <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
   <symbol id="i-branch" viewBox="0 0 16 16"><circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="6" r="1.5"/><path d="M4.5 5v6M11.5 7.5c0 2-3 2-7 3.5"/></symbol>
@@ -39,6 +42,8 @@
     <button class="widget" title="Project"><span class="av">B</span><b>blog</b><svg class="ic chev"><use href="#i-chev"/></svg></button>
     <button class="widget" title="Git Branch"><svg class="ic"><use href="#i-branch"/></svg>main<svg class="ic chev"><use href="#i-chev"/></svg></button>
     <span class="spacer"></span>
+    <button class="pillbtn" id="btn-ann" title="어노테이션 암기 (카드·퀴즈·빈칸)"><span>🧠</span> 어노테이션 암기</button>
+    <button class="pillbtn alt" id="btn-exam" title="모의고사"><span>📝</span> 모의고사</button>
     <span id="srv" class="off">Stopped</span>
     <div class="runwidget">
       <span class="cfg"><svg class="ic"><use href="#i-term"/></svg>BlogApplication<svg class="ic chev"><use href="#i-chev"/></svg></span>
@@ -51,17 +56,19 @@
   <!-- 좌측 스트립 -->
   <nav class="stripe" id="ls" aria-label="도구창">
     <button class="sb on" id="sb-project" title="Project"><svg class="ic"><use href="#i-folder"/></svg></button>
+    <button class="sb" id="sb-concepts" title="Concepts — 개념 애니메이션"><svg class="ic"><use href="#i-bulb"/></svg></button>
     <span class="sp"></span>
     <button class="sb" data-console="run" title="Run"><svg class="ic"><use href="#i-term"/></svg></button>
     <button class="sb" data-console="http" title="HTTP Response"><svg class="ic"><use href="#i-http"/></svg></button>
     <button class="sb" data-console="problems" title="Problems"><svg class="ic"><use href="#i-warn"/></svg></button>
   </nav>
 
-  <aside class="tw" id="ltw"><div class="twh"><span id="ltw-title">Project</span></div><div class="twb" id="tree"></div></aside>
+  <aside class="tw" id="ltw"><div class="twh"><span id="ltw-title">Project</span></div><div class="twb" id="tree"></div><div class="twb" id="clist" hidden></div></aside>
 
   <main class="center" id="center">
     <div id="tabs"></div>
     <div id="editor"></div>
+    <div id="concept" hidden></div>
     <section id="console"></section>
   </main>
 
@@ -81,6 +88,11 @@
 <script src="assets/data/annotations.js"></script>
 <script src="assets/data/steps.js"></script>
 <script src="assets/data/exam.js"></script>
+<!-- concepts: 개념 애니메이션 (SVG · 문서 · 플레이어) -->
+<script src="assets/ide/concepts/registry.js"></script>
+<script src="assets/ide/concepts/svg/diagrams.js"></script>
+<script src="assets/ide/concepts/svg/ioc-psa.js"></script>
+<script src="assets/ide/concepts/docs.js"></script>
 <!-- core: 파서 + 스프링 시뮬레이션 엔진 -->
 <script src="assets/ide/core/constants.js"></script>
 <script src="assets/ide/core/util.js"></script>
@@ -99,11 +111,19 @@
 <script src="assets/ide/ui/state.js"></script>
 <script src="assets/ide/ui/highlight.js"></script>
 <script src="assets/ide/ui/editor.js"></script>
+<script src="assets/ide/concepts/player.js"></script>
+<!-- memo: 어노테이션 암기 / 모의고사 -->
+<script src="assets/memo/core.js"></script>
+<script src="assets/memo/trainer.js"></script>
+<script src="assets/memo/exam.js"></script>
+<script src="assets/memo/modal.js"></script>
 <script src="assets/ide/ui/tree.js"></script>
 <script src="assets/ide/ui/tabs.js"></script>
 <script src="assets/ide/ui/console.js"></script>
 <script src="assets/ide/ui/analysis.js"></script>
 <script src="assets/ide/ui/missions.js"></script>
+<script src="assets/ide/ui/concept-pane.js"></script>
+<script src="assets/ide/ui/concepts-list.js"></script>
 <script src="assets/ide/runner.js"></script>
 <script src="assets/ide/ui/main.js"></script>
 </body>
