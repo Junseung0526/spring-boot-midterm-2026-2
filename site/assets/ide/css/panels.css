@@ -42,3 +42,20 @@
 /* 단계 제목 · 아직 순서가 아닌 미션은 조금 흐리게 */
 .stage { margin: 12px 12px 2px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--accent2); } .stage:first-of-type { margin-top: 4px; }
 .mi.upcoming { opacity: .62; } .mi.upcoming:hover { opacity: 1; }
+
+/* Commit 도구창 · Diff · 로그 */
+#gitpane { padding-bottom: 14px; font-size: 12.5px; }
+.gh { display: flex; align-items: center; gap: 8px; padding: 8px 12px 4px; color: #c8cbd1; } .gh small { color: var(--dim); } .gsp { flex: 1; } .gh button { font-size: 11.5px; color: #8fb4dc; padding: 1px 6px; } .gh button:hover { background: var(--btn); }
+.gcount { background: #3a3d44; border-radius: 9px; padding: 0 7px; font-size: 11px; }
+.gfiles { padding: 0 6px; } .gf { display: flex; align-items: center; gap: 7px; padding: 3px 6px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; } .gf:hover { background: #35373b; } .gf small { color: var(--dim); overflow: hidden; text-overflow: ellipsis; margin-left: 4px; }
+.gst { font-style: normal; font-weight: 700; font-size: 10px; width: 16px; height: 16px; display: grid; place-items: center; border-radius: 4px; } .gst.M { background: #243a63; color: #8fb4ff; } .gst.A { background: #25392a; color: #7fd37f; }
+.gempty { padding: 14px 12px; color: var(--dim); }
+#gmsg { display: block; width: calc(100% - 20px); margin: 8px 10px 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--editor); color: var(--text); font: 12.5px/1.5 var(--ui); resize: vertical; }
+.gbtns { display: flex; gap: 8px; padding: 0 10px; } .gbtns button { flex: 1; padding: 7px; border-radius: 8px; background: var(--btn); } .gbtns .gc { background: var(--accent); color: #fff; font-weight: 600; } .gbtns button:disabled { opacity: .4; }
+.glog { padding: 0 10px; } .gl1 { display: flex; gap: 9px; padding: 5px 0; border-bottom: 1px solid #34363b; } .gl1 b { display: block; font-weight: 500; line-height: 1.4; } .gl1 small { color: var(--dim); }
+.gdot { flex: none; width: 9px; height: 9px; margin-top: 5px; border-radius: 50%; background: #5a5d63; } .gdot.up { background: var(--accent); box-shadow: 0 0 0 3px #3574f033; }
+.gdirty { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #6f9bf2; margin-left: 3px; }
+#diffview { position: fixed; inset: 0; background: #000b; z-index: 76; display: grid; place-items: center; } #diffview[hidden] { display: none; }
+.dbox { width: min(1000px, 94vw); max-height: 88vh; display: flex; flex-direction: column; background: var(--editor); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.dt { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--border); } .dt small { color: var(--dim); } .dstat { margin-left: auto; } .dstat .a { color: var(--ok); font-style: normal; } .dstat .d { color: var(--err); font-style: normal; } .dt button { padding: 3px 9px; background: var(--btn); }
+.dbody { overflow: auto; font: 12.5px/20px var(--mono); padding: 6px 0; } .dl { display: flex; white-space: pre; } .dl i { flex: none; width: 46px; text-align: right; padding-right: 10px; color: var(--gutter-text); font-style: normal; } .dl b { flex: none; width: 18px; text-align: center; font-weight: 400; color: var(--dim); } .dl.add { background: #1f3326; } .dl.add b { color: var(--ok); } .dl.del { background: #3a2427; } .dl.del b { color: var(--err); } .dh { padding: 0 60px; color: var(--dim); background: #25272c; }

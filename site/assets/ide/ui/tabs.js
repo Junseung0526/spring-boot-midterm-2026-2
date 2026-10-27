@@ -17,7 +17,7 @@ function create(host) {
       const err = state.problems.some(x => x.path === p && x.sev === 'error');
       const c = IDE.concepts.isConcept(p) ? IDE.concepts.fromPath(p) : null;
       const label = c ? `<i class="fi f-doc">${c.icon}</i><span>${c.title}</span>` : `<span>${p.split('/').pop()}</span>`;
-      return `<div class="tab ${p === state.active ? 'on' : ''} ${err ? 'haserr' : ''}" data-file="${p}" title="${c ? c.title : p}">${label}<b class="x" data-close="${p}" aria-label="닫기">×</b></div>`;
+      return `<div class="tab ${p === state.active ? 'on' : ''} ${err ? 'haserr' : ''} ${IDE.git ? ({ M: 'gm', A: 'ga' }[IDE.git.status(p)] || '') : ''}" data-file="${p}" title="${c ? c.title : p}">${label}<b class="x" data-close="${p}" aria-label="닫기">×</b></div>`;
     }).join('');
     reveal(); requestAnimationFrame(reveal); setTimeout(reveal, 150);   // 늦게 확정되는 레이아웃까지 대비
   };
@@ -28,7 +28,7 @@ function create(host) {
     const t = e.target.closest('[data-file]'); if (t) store.openFile(t.dataset.file);
   });
   host.addEventListener('auxclick', e => { const t = e.target.closest('[data-file]'); if (t && e.button === 1) store.closeFile(t.dataset.file); });
-  ['tabs', 'problems', 'reset'].forEach(ev => bus.on(ev, draw));
+  ['tabs', 'problems', 'reset', 'git', 'edit'].forEach(ev => bus.on(ev, draw));
   draw();
 }
 Object.assign(IDE, { Tabs: { create } });

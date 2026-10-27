@@ -11,6 +11,7 @@ const state = {
   session: { started: false, responses: [], aspectHit: false, txHit: false, tests: null },
   server: { running: false, ctx: null, dirty: false },
   problems: [],
+  git: { base: {}, commits: [], pushed: 1, branch: 'main' },
 };
 
 const isConcept = p => !!IDE.concepts?.isConcept(p);
@@ -26,6 +27,10 @@ function load() {
   if (!state.open.includes('concept:welcome')) state.open.unshift('concept:welcome');
   state.active = 'concept:welcome';
   state.done = new Set(saved.done || []);
+  // Git(시뮬레이션): 마지막 커밋 시점의 파일(base)은 시작 코드와 다른 것만 저장
+  const g = saved.git;
+  state.git = g ? { base: { ...IDE.STARTER, ...(g.baseDiff || {}) }, commits: g.commits || [], pushed: g.pushed ?? 0, branch: g.branch || 'main' }
+    : { base: { ...IDE.STARTER }, commits: [{ id: 'a1f3c9e', msg: 'Initial commit — 스프링부트4 실습 프로젝트', time: Date.now(), files: Object.keys(IDE.STARTER).length }], pushed: 1, branch: 'main' };
 }
 let timer = null;
 function save() {
@@ -33,7 +38,8 @@ function save() {
   timer = setTimeout(() => {
     const files = {};
     for (const [p, c] of Object.entries(state.files)) if (c !== IDE.STARTER[p]) files[p] = c;
-    try { localStorage.setItem(KEY, JSON.stringify({ files, open: state.open, active: state.active, done: [...state.done] })); } catch { /* 무시 */ }
+    const baseDiff = {}; for (const [p, c] of Object.entries(state.git.base)) if (c !== IDE.STARTER[p]) baseDiff[p] = c;
+    try { localStorage.setItem(KEY, JSON.stringify({ files, open: state.open, active: state.active, done: [...state.done], git: { baseDiff, commits: state.git.commits, pushed: state.git.pushed, branch: state.git.branch } })); } catch { /* 무시 */ }
   }, 250);
 }
 const modified = p => state.files[p] !== IDE.STARTER[p];
@@ -57,6 +63,7 @@ function setContent(p, text) {
 function resetProject() {
   state.files = { ...IDE.STARTER }; state.open = defaultOpen(); state.active = state.open[0];
   state.done = new Set(); state.session = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
+  state.git = { base: { ...IDE.STARTER }, commits: [{ id: 'a1f3c9e', msg: 'Initial commit — 스프링부트4 실습 프로젝트', time: Date.now(), files: Object.keys(IDE.STARTER).length }], pushed: 1, branch: 'main' };
   save(); bus.emit('reset');
 }
 

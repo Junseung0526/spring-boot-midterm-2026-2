@@ -50,3 +50,7 @@
 .nft { font-weight: 700; font-size: 15px; } .nfbox label { display: grid; gap: 4px; font-size: 12px; color: var(--dim); }
 .nfbox select, .nfbox input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--editor); color: var(--text); font: inherit; font-size: 13px; }
 .nfmsg { min-height: 16px; color: var(--err); font-size: 12px; } .nfact { display: flex; gap: 8px; justify-content: flex-end; } .nfact button { padding: 7px 16px; border-radius: 8px; background: var(--btn); } .nfact .ok { background: var(--accent); color: #fff; font-weight: 600; }
+
+/* Git 상태 색상: 수정 = 파랑, 신규 = 초록 (IntelliJ 와 동일한 규칙) */
+.tr.gm .nm, .tab.gm > span:not(.fi) { color: #6f9bf2; } .tr.ga .nm, .tab.ga > span:not(.fi) { color: #62b543; }
+.tr.on.gm .nm, .tr.on.ga .nm { color: #fff; }

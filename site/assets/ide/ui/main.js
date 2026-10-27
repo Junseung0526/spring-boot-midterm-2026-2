@@ -52,6 +52,7 @@ const cpane = IDE.ConceptPane.create($('#concept'));
 IDE.Tabs.create($('#tabs'));
 IDE.Tree.create($('#tree'));
 IDE.ConceptsList.create($('#clist'));
+IDE.Git.create($('#gitpane'), toast);
 IDE.Missions.create($('#missions'), $('#modal'), toast);
 
 bus.on('console', () => $('#center').classList.remove('cmode'));   // 개념 탭이 열려 있어도 Run/HTTP 결과는 보이게
@@ -89,15 +90,20 @@ $('#btn-stop').addEventListener('click', () => runner.stop());
 /* 스트립: 도구창 토글 + 하단 도구창 탭 열기 */
 const toggleTw = (btn, cls) => { const off = $('.ide').classList.toggle(cls); $(btn).classList.toggle('on', !off); };
 const showTw = which => {          // which: 'tree' | 'clist' — 같은 걸 다시 누르면 접기
-  const ide = $('.ide'), same = !ide.classList.contains('noleft') && !$('#' + which).hidden;
+  const paneId = { tree: '#tree', clist: '#clist', git: '#gitpane' }[which];
+  const ide = $('.ide'), same = !ide.classList.contains('noleft') && !$(paneId).hidden;
   if (same) { ide.classList.add('noleft'); } else { ide.classList.remove('noleft'); }
-  $('#tree').hidden = which !== 'tree'; $('#clist').hidden = which !== 'clist';
-  $('#ltw-title').textContent = which === 'tree' ? 'Project' : 'Concepts';
+  $('#tree').hidden = which !== 'tree'; $('#clist').hidden = which !== 'clist'; $('#gitpane').hidden = which !== 'git';
+  $('#ltw-title').textContent = { tree: 'Project', clist: 'Concepts', git: 'Commit' }[which];
+  $('#btn-newfile').style.display = which === 'tree' ? '' : 'none';
   $('#sb-project').classList.toggle('on', !ide.classList.contains('noleft') && which === 'tree');
   $('#sb-concepts').classList.toggle('on', !ide.classList.contains('noleft') && which === 'clist');
+  $('#sb-git').classList.toggle('on', !ide.classList.contains('noleft') && which === 'git');
 };
 $('#sb-project').addEventListener('click', () => showTw('tree'));
 $('#sb-concepts').addEventListener('click', () => showTw('clist'));
+$('#sb-git').addEventListener('click', () => showTw('git'));
+$('#btn-branch').addEventListener('click', () => showTw('git'));
 $('#btn-concepts').addEventListener('click', () => {
   showTw('clist');
   if (!state.open.some(p => IDE.concepts.isConcept(p) && IDE.concepts.fromPath(p).kind === 'scene')) store.openFile('concept:mvcpattern');
@@ -118,6 +124,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'F10' && e.shiftKey) { e.preventDefault(); runner.run(); }
   if (e.key === 'F2' && e.ctrlKey) { e.preventDefault(); runner.stop(); }
   if (e.key === 'Escape') $('#modal').hidden = true;
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'k') { e.preventDefault(); showTw('git'); }
 });
 
 IDE.analysis.run();

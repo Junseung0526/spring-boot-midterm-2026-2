@@ -44,7 +44,7 @@ function renderNode(node, depth, path) {
   }
   for (const f of node.files.sort()) {
     const name = f.split('/').pop(), err = state.problems.some(p => p.path === f && p.sev === 'error');
-    out += `<div class="tr file ${state.active === f ? 'on' : ''} ${err ? 'haserr' : ''} ${store.modified(f) ? 'mod' : ''}" style="--d:${depth}" data-file="${f}"><span class="arrow"></span>${fileIcon(f)}<span class="nm">${name}</span>${f in IDE.STARTER ? '' : '<small class="new">NEW</small>'}</div>`;
+    out += `<div class="tr file ${state.active === f ? 'on' : ''} ${err ? 'haserr' : ''} ${IDE.git ? ({ M: 'gm', A: 'ga' }[IDE.git.status(f)] || '') : ''}" style="--d:${depth}" data-file="${f}"><span class="arrow"></span>${fileIcon(f)}<span class="nm">${name}</span>${f in IDE.STARTER ? '' : '<small class="new">NEW</small>'}</div>`;
   }
   return out;
 }
