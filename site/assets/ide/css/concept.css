@@ -76,3 +76,5 @@
 .cta { display: inline-block; padding: 10px 20px; border-radius: 10px; background: var(--accent); color: #fff !important; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; box-shadow: 0 0 0 0 #3574f088; animation: ring 2s infinite; } .cta:hover { background: var(--accent2); }
 @keyframes ring { 70% { box-shadow: 0 0 0 12px #3574f000; } 100% { box-shadow: 0 0 0 0 #3574f000; } }
 .wcards a[data-open^="concept:"]:not(.seen)::after { content: "▶ 애니메이션"; color: #6b9fff; }
+
+.cp svg.stepping .sn.off { opacity: 0; pointer-events: none; }

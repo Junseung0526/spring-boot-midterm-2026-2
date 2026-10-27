@@ -91,8 +91,9 @@ function mount(host, concept) {
     clearTimeout(nextT); i = Math.max(0, Math.min(N - 1, n));
     const s = steps[i];
     svg.classList.add('stepping');
-    svg.querySelectorAll('.sn').forEach(e => e.classList.remove('on'));
+    svg.querySelectorAll('.sn').forEach(e => e.classList.remove('on', 'off'));
     s.on.forEach(id => svg.querySelector('#' + id)?.classList.add('on'));
+    (s.off || []).forEach(id => svg.querySelector('#' + id)?.classList.add('off'));   // 이 단계에서는 존재하지 않는 요소(예: @WebMvcTest 에는 진짜 Service 가 없음)
     packets();
     $('.cp-step').textContent = `STEP ${i + 1} / ${N}`; $('.cp-t').textContent = s.t; $('.cp-d').textContent = s.d;
     $('.cp-file em').textContent = `${i + 1}/${N}`;
