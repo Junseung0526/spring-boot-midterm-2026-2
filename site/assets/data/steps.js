@@ -115,3 +115,58 @@ const STEPS = {
   ],
 };
 
+
+/* ── IoC·DI 와 PSA 애니메이션 단계 (SVG: ide/concepts/svg/ioc-psa.js) ── */
+STEPS.ioc = [
+  { on: ['i-old'], t: '① 전통 방식 : 내가 직접 new',
+    d: '객체를 만들고 연결하는 일을 개발자 코드가 직접 합니다. 구현 클래스에 강하게 묶여서(강결합) 교체와 테스트가 어렵고, 생성 책임이 코드 곳곳에 흩어집니다.',
+    code: 'public class PostController {\n\n    // 내가 직접 만들고 연결한다 → 강결합\n    private final PostService postService =\n            new PostService(new PostRepository());\n}' },
+  { on: ['i-ctn'], t: '② 스프링 컨테이너 등장 (IoC)',
+    d: 'ApplicationContext 가 객체의 생성·연결·소멸을 대신 맡습니다. 제어권이 개발자에서 컨테이너로 "역전"되는 것이 IoC(제어의 역전)입니다. 부트는 run() 한 줄로 컨테이너를 시작합니다.',
+    code: '@SpringBootApplication\npublic class BlogApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(BlogApplication.class, args); // 컨테이너 시작\n    }\n}' },
+  { on: ['i-files', 'i-scan', 'i-ctn'], t: '③ 컴포넌트 스캔 : 빈 후보 찾기',
+    d: '메인 클래스의 패키지와 하위를 훑어 @Component 계열(@Controller, @Service, @Repository …)이 붙은 클래스를 빈 정의로 등록합니다. 어노테이션이 없으면 컨테이너는 그 클래스를 알지 못합니다.',
+    code: '@Repository\npublic interface PostRepository extends JpaRepository<Post, Long> { }\n\n@Service\npublic class PostService { ... }\n\n@RestController\npublic class PostController { ... }' },
+  { on: ['i-ctn', 'i-pool', 'i-b-repo', 'i-b-svc', 'i-b-ctl'], t: '④ 빈 생성 : 의존되는 것부터',
+    d: '의존 관계를 분석해 Repository → Service → Controller 순서로 인스턴스를 만들고 싱글톤 저장소에 보관합니다. 기본 스코프는 singleton 이라 컨테이너당 하나만 만들어 공유합니다.',
+    code: "Creating shared instance of singleton bean 'postRepository'\nCreating shared instance of singleton bean 'postService'\nCreating shared instance of singleton bean 'postController'" },
+  { on: ['i-b-ctl', 'i-b-svc', 'i-b-repo', 'i-inj1', 'i-inj2'], t: '⑤ 의존성 주입 (DI)',
+    d: '컨테이너가 만든 빈을 필요한 곳의 생성자에 넣어 줍니다. 권장 방식은 생성자 주입이며 final 로 불변을 보장하고, 생성자가 하나면 @Autowired 도 생략할 수 있습니다.',
+    code: '@RestController\npublic class PostController {\n\n    private final PostService postService;   // final → 불변\n\n    public PostController(PostService postService) {  // 컨테이너가 주입\n        this.postService = postService;\n    }\n}' },
+  { on: ['i-ctn', 'i-pool', 'i-b-ctl', 'i-b-svc', 'i-b-repo'], t: '⑥ 느슨한 결합 : 교체와 테스트가 쉽다',
+    d: '컨트롤러는 어떤 구현이 오는지 몰라도 되므로, 테스트에서는 가짜(mock)를 넣고 운영에서는 진짜를 넣습니다. 이것이 IoC/DI 가 주는 가장 큰 이점입니다.',
+    code: 'class PostControllerTest {\n\n    @Test\n    void list() {\n        PostService fake = mock(PostService.class);\n        PostController controller = new PostController(fake); // new 로 바로 주입\n    }\n}' },
+];
+
+STEPS.psa = [
+  { on: ['p-code'], t: '① 서비스 코드는 기술을 모른다',
+    d: '비즈니스 코드에는 "트랜잭션이 필요하다", "캐시하고 싶다"는 선언만 있고 JDBC/JPA/Redis 같은 구체 기술은 없습니다. 구체 기술은 스프링이 추상화 뒤에 숨깁니다.',
+    code: '@Service\npublic class PostService {\n\n    @Transactional\n    public PostResponse create(PostRequest req) { ... }\n\n    @Cacheable("posts")\n    public PostResponse find(Long id) { ... }\n}' },
+  { on: ['p-code', 'p-e1', 'p-abs-tx'], t: '② @Transactional → PlatformTransactionManager',
+    d: 'AOP 프록시가 메서드 앞뒤에서 트랜잭션 시작·커밋·롤백을 PlatformTransactionManager 라는 "인터페이스"에 맡깁니다. 그래서 @Transactional 은 AOP(프록시)와 PSA(추상화)가 함께 만든 기능입니다.',
+    code: '// 프록시가 대신 해 주는 일 (개념 코드)\nTransactionStatus status = txManager.getTransaction(def);\ntry {\n    service.create(req);\n    txManager.commit(status);\n} catch (RuntimeException e) {\n    txManager.rollback(status);   // 기본: RuntimeException·Error 만 롤백\n    throw e;\n}' },
+  { on: ['p-abs-tx', 'p-e3a', 'p-tx1'], t: '③ 구현체 : JPA 를 쓰면 JpaTransactionManager',
+    d: 'spring-boot-starter-data-jpa 를 넣으면 자동 설정이 JpaTransactionManager 를 빈으로 등록합니다. 코드는 한 줄도 바뀌지 않았습니다.',
+    code: 'dependencies {\n    implementation \'org.springframework.boot:spring-boot-starter-data-jpa\'\n    // → JpaTransactionManager 가 자동 등록됨\n}' },
+  { on: ['p-abs-tx', 'p-e3b', 'p-tx2'], t: '③-2 JDBC 만 쓰면 DataSourceTransactionManager',
+    d: '같은 @Transactional 이 JDBC 환경에서는 DataSourceTransactionManager 로 동작합니다. 구현 기술이 달라져도 서비스 코드는 그대로입니다 — 이것이 "이식 가능한 서비스 추상화" 입니다.',
+    code: 'dependencies {\n    implementation \'org.springframework.boot:spring-boot-starter-jdbc\'\n    // → DataSourceTransactionManager 가 자동 등록됨\n}\n\n// PostService 는 그대로!' },
+  { on: ['p-code', 'p-e2', 'p-abs-cache'], t: '④ @Cacheable → CacheManager',
+    d: '캐시도 같은 구조입니다. @Cacheable 이 CacheManager 인터페이스를 통해 캐시를 읽고 씁니다. 캐시에 값이 있으면 메서드를 실행하지 않고 바로 돌려줍니다.',
+    code: '@EnableCaching\n@SpringBootApplication\npublic class BlogApplication { ... }\n\n@Cacheable(cacheNames = "posts", key = "#id")\npublic PostResponse find(Long id) { ... }' },
+  { on: ['p-abs-cache', 'p-e4a', 'p-c1'], t: '⑤ 기본 구현체 : ConcurrentMap (로컬 메모리)',
+    d: '별도 설정이 없으면 간단한 ConcurrentMapCacheManager 가 쓰입니다. 개발 단계에는 충분하지만 서버가 여러 대면 캐시가 서로 공유되지 않습니다.',
+    code: '// 설정 없음 → ConcurrentMapCacheManager (JVM 메모리)\nspring:\n  cache:\n    type: simple' },
+  { on: ['p-abs-cache', 'p-e4b', 'p-c2'], t: '⑥ Redis 로 교체 : 의존성 + 설정 한 줄',
+    d: 'Redis 의존성을 넣고 설정 한 줄만 바꾸면 분산 캐시로 교체됩니다. 서비스 코드의 @Cacheable 은 단 한 글자도 수정하지 않습니다. 이것이 PSA 의 핵심 가치입니다.',
+    code: 'implementation \'org.springframework.boot:spring-boot-starter-data-redis\'\n\nspring:\n  cache:\n    type: redis      # ← 이것만 바꾸면 끝\n\n// PostService.find() : 수정 없음 ✔' },
+];
+
+STEPS.mvcpattern = [
+  { on: ['m-user'], t: '① 사용자가 화면에서 요청', d: '사용자가 브라우저에서 URL 을 열거나 버튼을 눌러 요청을 보냅니다. MVC 의 시작은 항상 사용자 입력입니다.', code: 'GET /api/posts/1 HTTP/1.1' },
+  { on: ['m-user', 'm-e1', 'm-ctl'], t: '② Controller 가 요청을 받는다', d: 'Controller 는 요청을 해석하고 필요한 값을 꺼내 Model 에게 일을 시킬 준비를 합니다. 비즈니스 로직 자체는 직접 하지 않습니다 (얇게 유지).', code: '@RestController\n@RequestMapping("/api/posts")\npublic class PostController {\n\n    @GetMapping("/{id}")\n    public PostResponse get(@PathVariable Long id) {' },
+  { on: ['m-ctl', 'm-e2', 'm-model'], t: '③ Model 에게 처리를 요청', d: 'Model 은 데이터와 비즈니스 규칙을 담당합니다. 스프링에서는 Service · Repository · Entity · DTO 가 Model 계층에 해당합니다.', code: '        return postService.find(id);   // Model(Service) 호출\n    }\n}' },
+  { on: ['m-model', 'm-e3', 'm-ctl'], t: '④ 처리 결과(데이터)가 돌아온다', d: 'Model 이 조회/변경한 결과를 Controller 에게 돌려줍니다. Model 은 화면(View)이 무엇인지 전혀 모릅니다.', code: 'PostResponse(id=1, title="첫 글", content="Hello")' },
+  { on: ['m-ctl', 'm-e4', 'm-view'], t: '⑤ Controller 가 View 를 선택', d: '결과를 어떤 View 로 보여 줄지 정합니다. @Controller 면 뷰 이름(Thymeleaf), @RestController 면 HttpMessageConverter 가 만든 JSON 이 View 역할을 합니다.', code: '// @Controller : 뷰 이름을 반환\nmodel.addAttribute("post", post);\nreturn "posts/detail";\n\n// @RestController : 객체 → JSON' },
+  { on: ['m-view', 'm-e5', 'm-user'], t: '⑥ 사용자에게 응답', d: 'View 가 만든 HTML 또는 JSON 이 사용자에게 돌아가며 한 사이클이 끝납니다. 화면을 바꿔도 로직은 그대로, 로직을 바꿔도 화면은 그대로 — 이것이 역할 분리의 장점입니다.', code: 'HTTP/1.1 200 OK\nContent-Type: application/json\n\n{"id":1,"title":"첫 글","content":"Hello"}' },
+];
