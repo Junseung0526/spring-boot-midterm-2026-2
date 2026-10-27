@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring Boot 4 중간고사 올인원</title>
+<meta name="description" content="MVC · IoC/DI · AOP · PSA를 SVG와 단계별 시뮬레이터, 실습, 어노테이션 암기 카드로 정복하는 Spring Boot 4 중간고사 대비 사이트">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%236db33f'/%3E%3Cpath d='M9 21c5 1 11-1 13-9-3 3-8 3-11 4z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- 공용 화살표 마커 -->
+<svg class="sr" aria-hidden="true" focusable="false"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8795a6"/></marker>
+  <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f08c00"/></marker>
+  <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d64545"/></marker>
+</defs></svg>
+
+<header class="top">
+  <div class="logo">🌱 <b>Spring Boot 4</b> <span>중간고사</span></div>
+  <nav aria-label="섹션 이동">
+    <a href="#overview">개요</a><a href="#boot">부트 4</a><a href="#mvc">MVC</a><a href="#flow">요청 흐름</a>
+    <a href="#ioc">IoC·DI</a><a href="#aop">AOP</a><a href="#psa">PSA</a><a href="#code">실제 코드</a>
+    <a href="#lab">🧪 실습실</a><a href="#annotations">어노테이션 암기</a><a href="#exam">모의고사</a><a href="#cheat">요약표</a>
+  </nav>
+  <button id="theme" type="button" aria-label="테마 전환">🌓</button>
+</header>
+
+<main>
+<!-- ═══════════════ 개요 ═══════════════ -->
+<section id="overview" class="hero">
+  <h1>Spring Boot 4 <em>중간고사</em><br>그림 · 흐름 · 실습으로 끝내기</h1>
+  <p class="lead">MVC → IoC/DI → AOP → PSA 순서로, 개념 → SVG 그림 → 단계별 시뮬레이터 → 실제 코드 → <b>직접 해보는 실습</b> → 암기 순서로 구성했습니다. 버튼을 눌러가며 흐름을 직접 따라가 보세요.</p>
+  <div class="stats">
+    <div class="stat"><small>외운 어노테이션</small><b id="st-known">0 / 0</b><div class="bar"><div id="st-bar" style="width:0"></div></div></div>
+    <div class="stat"><small>오답노트</small><b id="st-wrong">0</b> 문항</div>
+    <div class="stat"><small>진행도 저장</small><button type="button" class="chip ghost" id="reset-known">초기화</button><br><small>브라우저(localStorage)에 자동 저장</small></div>
+  </div>
+  <div class="roadmap">
+    <a href="#boot"><b>1. 스프링 부트 4</b><span>자동 설정 · 시작 흐름 · 4.0 변경점</span></a>
+    <a href="#mvc"><b>2. MVC 패턴</b><span>Model·View·Controller · REST vs 뷰</span></a>
+    <a href="#flow"><b>3. 요청 흐름</b><span>DispatcherServlet 10단계 시뮬레이터</span></a>
+    <a href="#ioc"><b>4. IoC / DI</b><span>컨테이너 · 주입 방식 · 빈 생명주기</span></a>
+    <a href="#aop"><b>5. AOP</b><span>프록시 · 어드바이스 순서 · 자기호출</span></a>
+    <a href="#psa"><b>6. PSA</b><span>@Transactional · 캐시 · 구현체 교체</span></a>
+    <a href="#code"><b>7. 실제 코드</b><span>블로그 CRUD 전 계층 + 흐름 추적</span></a>
+    <a href="#lab"><b>8. 🧪 실습실</b><span>빈칸 코딩 · 요청 시뮬 · 디버깅 · AOP</span></a>
+    <a href="#annotations"><b>9. 어노테이션 암기</b><span>카드 · 객관식 · 빈칸 입력 · 목록</span></a>
+    <a href="#exam"><b>10. 모의고사</b><span>오답노트 자동 저장</span></a>
+  </div>
+</section>
+
+<!-- ═══════════════ 부트 ═══════════════ -->
+<section id="boot">
+  <h2>1. 스프링 부트와 4.0 핵심</h2>
+  <div class="card">
+    <h3 style="margin-top:0">스프링 vs 스프링 부트</h3>
+    <p><b>Spring Framework</b>는 IoC/DI · AOP · MVC · 트랜잭션 같은 <b>핵심 기능</b>이고, <b>Spring Boot</b>는 그것을 <b>설정 없이 바로 쓰게</b> 해 주는 도구입니다. 핵심 3요소: <span class="pill">Starter</span> 의존성 묶음, <span class="pill">AutoConfiguration</span> 자동 설정, <span class="pill">Embedded Server</span> 내장 Tomcat.</p>
+
+    <h3>@SpringBootApplication 은 3개의 합성</h3>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 640 210" role="img" aria-label="@SpringBootApplication 구성" style="min-width:520px;max-width:720px;margin:auto">
+      <rect class="box sp" x="8" y="8" width="624" height="194" rx="16"/>
+      <text class="t" x="320" y="34" style="font-size:16px">@SpringBootApplication</text>
+      <g><rect class="box bl" x="28" y="54" width="190" height="132" rx="12"/><text class="t2" x="123" y="82">@Configuration</text>
+        <text class="s" x="123" y="106">이 클래스는 설정 클래스</text><text class="s" x="123" y="126">@Bean 메서드로 빈 정의</text><text class="s" x="123" y="146">(CGLIB 프록시로 싱글톤 보장)</text></g>
+      <g><rect class="box or" x="225" y="54" width="190" height="132" rx="12"/><text class="t2" x="320" y="82">@EnableAutoConfiguration</text>
+        <text class="s" x="320" y="106">클래스패스를 보고</text><text class="s" x="320" y="126">필요한 빈을 자동 등록</text><text class="s" x="320" y="146">@ConditionalOn… 조건 평가</text></g>
+      <g><rect class="box pu" x="422" y="54" width="190" height="132" rx="12"/><text class="t2" x="517" y="82">@ComponentScan</text>
+        <text class="s" x="517" y="106">현재 패키지 + 하위에서</text><text class="s" x="517" y="126">@Component 계열을 찾아</text><text class="s" x="517" y="146">빈으로 등록</text></g>
+    </svg></div>
+
+    <h3>애플리케이션 시작 흐름 (단계별로 눌러보기)</h3>
+    <div class="stepper" data-stepper="boot">
+      <div class="diawrap"><svg class="dia" viewBox="0 0 940 190" role="img" aria-label="스프링 부트 시작 흐름">
+        <g class="sn" id="s1"><rect class="box bl" x="10" y="45" width="130" height="80" rx="12"/><text class="t2" x="75" y="80">① main()</text><text class="s" x="75" y="102">진입점</text></g>
+        <g class="sn" id="b1"><path class="edge" d="M140,85 L165,85"/></g>
+        <g class="sn" id="s2"><rect class="box sp" x="165" y="45" width="130" height="80" rx="12"/><text class="t2" x="230" y="80">② run()</text><text class="s" x="230" y="102">SpringApplication</text></g>
+        <g class="sn" id="b2"><path class="edge" d="M295,85 L320,85"/></g>
+        <g class="sn" id="s3"><rect class="box sp" x="320" y="45" width="130" height="80" rx="12"/><text class="t2" x="385" y="80">③ Context 생성</text><text class="s" x="385" y="102">ApplicationContext</text></g>
+        <g class="sn" id="b3"><path class="edge" d="M450,85 L475,85"/></g>
+        <g class="sn" id="s4"><rect class="box pu" x="475" y="45" width="130" height="80" rx="12"/><text class="t2" x="540" y="80">④ 컴포넌트 스캔</text><text class="s" x="540" y="102">@Component → 빈</text></g>
+        <g class="sn" id="b4"><path class="edge" d="M605,85 L630,85"/></g>
+        <g class="sn" id="s5"><rect class="box or" x="630" y="45" width="130" height="80" rx="12"/><text class="t2" x="695" y="80">⑤ 자동 설정</text><text class="s" x="695" y="102">AutoConfiguration</text></g>
+        <g class="sn" id="b5"><path class="edge" d="M760,85 L785,85"/></g>
+        <g class="sn" id="s6"><rect class="box rd" x="785" y="45" width="130" height="80" rx="12"/><text class="t2" x="850" y="80">⑥ 내장 Tomcat</text><text class="s" x="850" y="102">8080 리스닝</text></g>
+        <text class="m" x="470" y="165">Started BlogApplication in 2.1 seconds  ✔</text>
+      </svg></div>
+    </div>
+
+    <h3>자동 설정이 동작하는 원리</h3>
+    <script type="text/plain" class="code" data-title="AutoConfiguration 의 모양 (개념 예시)">
+@AutoConfiguration
+@ConditionalOnClass(DataSource.class)           // 라이브러리가 클래스패스에 있을 때만
+class DataSourceAutoConfiguration {
+
+  @Bean
+  @ConditionalOnMissingBean                      // 사용자가 직접 만들지 않았을 때만 (사용자 우선)
+  DataSource dataSource(DataSourceProperties p) { ... }
+}
+</script>
+    <div class="callout"><b>암기</b> “클래스패스에 있으면(@ConditionalOnClass) + 내가 안 만들었으면(@ConditionalOnMissingBean) 자동 등록”.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Spring Boot 4 (Spring Framework 7) 변경점 요약 <span class="tag">출제 가능성↑</span></h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>항목</th><th>Boot 3 (Framework 6)</th><th>Boot 4 (Framework 7)</th></tr></thead>
+      <tbody>
+        <tr><td>기반</td><td>Spring Framework 6.x</td><td><b>Spring Framework 7</b>, Jakarta EE 11 (Servlet 6.1, Tomcat 11, Hibernate 7)</td></tr>
+        <tr><td>Java</td><td>17+</td><td>17+ 기준 유지 (최신 LTS 권장, Java 25 지원)</td></tr>
+        <tr><td>모듈 구조</td><td>거대한 spring-boot-autoconfigure</td><td><b>모듈화</b>: 기술별로 작은 모듈·전용 스타터로 분리</td></tr>
+        <tr><td>웹 스타터</td><td><code>spring-boot-starter-web</code></td><td><code>spring-boot-starter-webmvc</code> (테스트: <code>…-webmvc-test</code>)</td></tr>
+        <tr><td>AOP 스타터</td><td><code>spring-boot-starter-aop</code></td><td><code>spring-boot-starter-aspectj</code></td></tr>
+        <tr><td>JSON</td><td>Jackson 2</td><td><b>Jackson 3</b> 기본 (패키지 <code>tools.jackson</code>)</td></tr>
+        <tr><td>테스트 목</td><td><code>@MockBean</code>, <code>@SpyBean</code></td><td>제거 → <b><code>@MockitoBean</code>, <code>@MockitoSpyBean</code></b></td></tr>
+        <tr><td>널 안정성</td><td>자체 @Nullable</td><td><b>JSpecify</b> 어노테이션 채택</td></tr>
+        <tr><td>API 버전 관리</td><td>직접 구현</td><td>매핑에서 <code>version</code> 속성으로 지원</td></tr>
+        <tr><td>HTTP 클라이언트</td><td>RestTemplate / RestClient</td><td>RestClient + <b>HTTP Service Client</b>(<code>@HttpExchange</code>, <code>@ImportHttpServices</code>) 강화, RestTemplate 는 단계적 폐지 방향</td></tr>
+        <tr><td>복원력</td><td>Spring Retry 별도</td><td><code>@Retryable</code>, <code>@ConcurrencyLimit</code> 코어 포함</td></tr>
+        <tr><td>제거</td><td>Undertow 등</td><td>Servlet 6.1 비호환 Undertow 지원 제외 → Tomcat(기본)/Jetty</td></tr>
+      </tbody></table></div>
+    <div class="callout warn"><b>주의</b> 세부 항목(스타터 이름 등)은 릴리스 마이너 버전에 따라 달라질 수 있으니, <b>강의 자료에 나온 표현을 우선</b>하고 이 표는 흐름 파악용으로 보세요.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ MVC ═══════════════ -->
+<section id="mvc">
+  <h2>2. MVC 패턴</h2>
+  <div class="card">
+    <p><b>MVC</b>는 애플리케이션을 <b>Model(데이터·비즈니스) / View(화면) / Controller(요청 제어)</b>로 나누어 역할을 분리하는 설계 패턴입니다. 화면을 바꿔도 로직을 건드리지 않고, 로직을 바꿔도 화면을 건드리지 않게 하려는 것이 목적입니다.</p>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 340" role="img" aria-label="MVC 패턴 개념도">
+      <g><rect class="box bl" x="20" y="130" width="130" height="80" rx="12"/><text class="t" x="85" y="165">사용자</text><text class="s" x="85" y="187">브라우저 / 앱</text></g>
+      <g><rect class="box sp" x="330" y="20" width="220" height="90" rx="12"/><text class="t" x="440" y="55">Controller</text><text class="s" x="440" y="77">요청 받기 · 검증 · 흐름 제어</text><text class="s" x="440" y="95">@Controller / @RestController</text></g>
+      <g><rect class="box or" x="700" y="120" width="220" height="100" rx="12"/><text class="t" x="810" y="155">Model</text><text class="s" x="810" y="177">데이터 · 비즈니스 로직</text><text class="s" x="810" y="195">Entity · DTO · Service · Repository</text></g>
+      <g><rect class="box pu" x="330" y="240" width="220" height="80" rx="12"/><text class="t" x="440" y="272">View</text><text class="s" x="440" y="294">화면 표현 (Thymeleaf HTML / JSON)</text></g>
+      <path class="edge" d="M150,150 L330,75"/><circle class="badge" cx="235" cy="108" r="11"/><text class="bt" x="235" y="112">1</text><text class="s r" x="245" y="86" style="text-anchor:end">요청</text>
+      <path class="edge" d="M550,50 L735,120"/><circle class="badge" cx="650" cy="82" r="11"/><text class="bt" x="650" y="86">2</text><text class="s" x="690" y="64">처리 요청</text>
+      <path class="edge back" d="M700,185 L520,110"/><circle class="badge" cx="610" cy="148" r="11"/><text class="bt" x="610" y="152">3</text><text class="s" x="650" y="205">결과 데이터</text>
+      <path class="edge" d="M440,110 L440,240"/><circle class="badge" cx="440" cy="175" r="11"/><text class="bt" x="440" y="179">4</text><text class="s l" x="456" y="172">뷰 선택 + 모델 전달</text>
+      <path class="edge" d="M330,285 C220,285 120,270 100,212"/><circle class="badge" cx="170" cy="272" r="11"/><text class="bt" x="170" y="276">5</text><text class="s" x="230" y="318">응답 (HTML / JSON)</text>
+    </svg></div>
+    <div class="grid2">
+      <div><h4>역할 분담</h4><ul>
+        <li><b>Model</b> — 상태·규칙. 화면을 모릅니다.</li>
+        <li><b>View</b> — 모델을 보여주기만. 로직 금지.</li>
+        <li><b>Controller</b> — 입력 해석 → 모델 호출 → 뷰 선택. 얇게 유지!</li></ul></div>
+      <div><h4>Spring MVC 는 “Model 2 + Front Controller”</h4><ul>
+        <li>모든 요청이 <b>DispatcherServlet 한 곳</b>으로 들어옴 (Front Controller)</li>
+        <li>공통 처리(인코딩, 예외, 인터셉터)를 한곳에서 처리</li>
+        <li>컨트롤러는 서블릿을 직접 상속하지 않고 <b>POJO + 어노테이션</b></li></ul></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">응답 방식 갈림길 : 뷰 렌더링 vs JSON</h3>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 250" role="img" aria-label="컨트롤러 반환값 처리 분기">
+      <g><rect class="box sp" x="10" y="95" width="160" height="60" rx="12"/><text class="t" x="90" y="122">Controller</text><text class="s" x="90" y="142">메서드 반환값</text></g>
+      <path class="edge" d="M170,125 L240,125"/>
+      <g><path class="box or" d="M240,125 L350,70 L460,125 L350,180 Z"/><text class="t2" x="350" y="120">@ResponseBody</text><text class="t2" x="350" y="138">/ @RestController?</text></g>
+      <path class="edge" d="M350,70 L350,40 L560,40"/><text class="s grn" x="440" y="32" style="font-weight:700">YES</text>
+      <path class="edge" d="M350,180 L350,210 L560,210"/><text class="s red" x="440" y="228" style="font-weight:700">NO</text>
+      <g><rect class="box sp" x="560" y="12" width="190" height="56" rx="12"/><text class="t2" x="655" y="38">HttpMessageConverter</text><text class="s" x="655" y="56">객체 → JSON (Jackson)</text></g>
+      <path class="edge" d="M750,40 L800,40"/>
+      <g><rect class="box bl" x="800" y="12" width="130" height="56" rx="12"/><text class="t2" x="865" y="38">JSON 응답</text><text class="s" x="865" y="56">{"id":1,…}</text></g>
+      <g><rect class="box pu" x="560" y="182" width="190" height="56" rx="12"/><text class="t2" x="655" y="208">ViewResolver</text><text class="s" x="655" y="226">뷰 이름 → 템플릿 탐색</text></g>
+      <path class="edge" d="M750,210 L800,210"/>
+      <g><rect class="box bl" x="800" y="182" width="130" height="56" rx="12"/><text class="t2" x="865" y="208">HTML 응답</text><text class="s" x="865" y="226">Thymeleaf 렌더링</text></g>
+    </svg></div>
+    <div class="grid2">
+      <script type="text/plain" class="code" data-title="@Controller → 뷰 이름 반환">
+@Controller
+class PageController {
+  @GetMapping("/posts/{id}")
+  String detail(@PathVariable Long id, Model model) {
+    model.addAttribute("post", service.find(id));
+    return "posts/detail";   // templates/posts/detail.html
+  }
+}
+</script>
+      <script type="text/plain" class="code" data-title="@RestController → JSON 반환">
+@RestController
+@RequestMapping("/api/posts")
+class PostApi {
+  @GetMapping("/{id}")
+  PostResponse detail(@PathVariable Long id) {
+    return service.find(id);   // → JSON
+  }
+}
+</script>
+    </div>
+    <h3>요청 값 받는 3가지 (자주 나오는 비교)</h3>
+    <div class="tablewrap"><table><thead><tr><th>어노테이션</th><th>값의 위치</th><th>예</th><th>변환 주체</th></tr></thead><tbody>
+      <tr><td><code>@PathVariable</code></td><td>URL 경로</td><td><code>/posts/<b>1</b></code></td><td>타입 변환</td></tr>
+      <tr><td><code>@RequestParam</code></td><td>쿼리스트링 / 폼</td><td><code>/posts?page=<b>2</b></code></td><td>타입 변환</td></tr>
+      <tr><td><code>@RequestBody</code></td><td>HTTP 본문(JSON)</td><td><code>{"title":"…"}</code></td><td>HttpMessageConverter</td></tr>
+      <tr><td><code>@ModelAttribute</code></td><td>폼 필드 → 객체</td><td><code>title=a&amp;content=b</code></td><td>데이터 바인더</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 흐름 ═══════════════ -->
+<section id="flow">
+  <h2>3. 요청 흐름 : DispatcherServlet 따라가기</h2>
+  <div class="card">
+    <p><b>다음 ▶</b>을 눌러 한 단계씩 진행해 보세요. 그림에서 주황색으로 켜진 부분이 현재 단계이고, 아래에 설명과 <b>그 단계의 실제 코드</b>가 나옵니다. (점선 = 응답 방향)</p>
+    <div class="stepper" data-stepper="mvc">
+      <div class="diawrap"><svg class="dia" viewBox="0 0 940 400" role="img" aria-label="Spring MVC 요청 처리 흐름">
+        <rect class="lane" x="190" y="0" width="745" height="165" rx="14"/>
+        <text class="lane-t" x="925" y="156" style="text-anchor:end">Spring MVC 프레임워크 (내부 컴포넌트)</text>
+        <rect class="lane2" x="190" y="235" width="745" height="152" rx="14"/>
+        <text class="lane-t" x="925" y="376" style="text-anchor:end">개발자가 작성하는 코드</text>
+
+        <g class="sn" id="n-client"><rect class="box bl" x="20" y="60" width="120" height="80" rx="10"/><text class="t" x="80" y="92">Client</text><text class="s" x="80" y="112">브라우저 / 앱</text></g>
+        <g class="sn" id="n-ds"><rect class="box sp" x="210" y="40" width="170" height="100" rx="12"/><text class="t" x="295" y="84">DispatcherServlet</text><text class="s" x="295" y="104">Front Controller</text></g>
+        <g class="sn" id="n-hm"><rect class="box" x="470" y="30" width="150" height="45" rx="10"/><text class="t2" x="545" y="50">HandlerMapping</text><text class="s" x="545" y="66">URL → 핸들러 탐색</text></g>
+        <g class="sn" id="n-ha"><rect class="box" x="470" y="105" width="150" height="45" rx="10"/><text class="t2" x="545" y="125">HandlerAdapter</text><text class="s" x="545" y="141">핸들러 실행</text></g>
+        <g class="sn" id="n-vr"><rect class="box pu" x="700" y="60" width="210" height="60" rx="10"/><text class="t2" x="805" y="86">ViewResolver / Converter</text><text class="s" x="805" y="106">HTML 렌더링 or JSON 변환</text></g>
+        <g class="sn" id="n-ctrl"><rect class="box sp" x="210" y="280" width="150" height="60" rx="10"/><text class="t" x="285" y="306">Controller</text><text class="s" x="285" y="326">@RestController</text></g>
+        <g class="sn" id="n-svc"><rect class="box sp" x="430" y="280" width="130" height="60" rx="10"/><text class="t" x="495" y="306">Service</text><text class="s" x="495" y="326">@Service · @Tx</text></g>
+        <g class="sn" id="n-repo"><rect class="box sp" x="620" y="280" width="140" height="60" rx="10"/><text class="t" x="690" y="306">Repository</text><text class="s" x="690" y="326">JpaRepository</text></g>
+        <g class="sn" id="n-db"><path class="box or" d="M820,288 a50,10 0 0 1 100,0 v50 a50,10 0 0 1 -100,0 z"/><ellipse class="box or" cx="870" cy="288" rx="50" ry="10"/><text class="t" x="870" y="318">DB</text></g>
+
+        <g class="sn" id="e1"><path class="edge" d="M140,80 L210,80"/><circle class="badge" cx="175" cy="80" r="11"/><text class="bt" x="175" y="84">1</text></g>
+        <g class="sn" id="e10"><path class="edge back" d="M210,112 L140,112"/><circle class="badge" cx="175" cy="112" r="11"/><text class="bt" x="175" y="116">10</text></g>
+        <g class="sn" id="e2"><path class="edge" d="M380,65 L470,52"/><circle class="badge" cx="425" cy="58" r="11"/><text class="bt" x="425" y="62">2</text></g>
+        <g class="sn" id="e3"><path class="edge" d="M380,115 L470,127"/><circle class="badge" cx="425" cy="121" r="11"/><text class="bt" x="425" y="125">3</text></g>
+        <g class="sn" id="e4"><path class="edge" d="M545,150 L545,210 L335,210 L335,280"/><circle class="badge" cx="440" cy="210" r="11"/><text class="bt" x="440" y="214">4</text></g>
+        <g class="sn" id="e8"><path class="edge back" d="M235,280 L235,140"/><circle class="badge" cx="235" cy="210" r="11"/><text class="bt" x="235" y="214">8</text></g>
+        <g class="sn" id="e9"><path class="edge" d="M295,40 L295,15 L805,15 L805,60"/><circle class="badge" cx="550" cy="15" r="11"/><text class="bt" x="550" y="19">9</text></g>
+        <g class="sn" id="e5"><path class="edge" d="M360,310 L430,310"/><circle class="badge" cx="395" cy="310" r="11"/><text class="bt" x="395" y="314">5</text></g>
+        <g class="sn" id="e6"><path class="edge" d="M560,310 L620,310"/><circle class="badge" cx="590" cy="310" r="11"/><text class="bt" x="590" y="314">6</text></g>
+        <g class="sn" id="e7"><path class="edge" d="M760,310 L820,310"/><circle class="badge" cx="790" cy="310" r="11"/><text class="bt" x="790" y="314">7</text></g>
+      </svg></div>
+    </div>
+    <div class="callout"><b>한 줄 암기</b> 요청 → <b>DispatcherServlet</b> → <b>HandlerMapping</b>(누가?) → <b>HandlerAdapter</b>(실행) → <b>Controller → Service → Repository → DB</b> → 반환 → <b>ViewResolver / MessageConverter</b> → 응답</div>
+  </div>
+</section>
+
+<!-- ═══════════════ IoC / DI ═══════════════ -->
+<section id="ioc">
+  <h2>4. IoC · DI (제어의 역전 · 의존성 주입)</h2>
+  <div class="card">
+    <div class="grid2">
+      <div><h4>IoC (Inversion of Control)</h4><p><b>객체 생성과 연결의 제어권</b>이 개발자 코드에서 <b>컨테이너</b>로 넘어간 것. 우리는 “무엇이 필요한지”만 선언하고, 컨테이너가 만들고 관리합니다.</p></div>
+      <div><h4>DI (Dependency Injection)</h4><p>IoC 를 구현하는 <b>방법</b>. 필요한 의존 객체를 <b>외부(컨테이너)에서 넣어주는 것</b> (생성자 / 세터 / 필드).</p></div>
+    </div>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 300" role="img" aria-label="전통 방식과 IoC 비교">
+      <rect class="box dash" x="10" y="10" width="445" height="280" rx="14"/>
+      <text class="t" x="232" y="36">❌ 전통 방식 : 내가 직접 new</text>
+      <g><rect class="box rd" x="150" y="55" width="160" height="50" rx="10"/><text class="t2" x="230" y="86">PostController</text></g>
+      <path class="edge bad" d="M230,105 L230,140"/><text class="m red" x="242" y="127" style="text-anchor:start">new PostService()</text>
+      <g><rect class="box rd" x="150" y="140" width="160" height="50" rx="10"/><text class="t2" x="230" y="171">PostService</text></g>
+      <path class="edge bad" d="M230,190 L230,225"/><text class="m red" x="242" y="212" style="text-anchor:start">new PostRepository()</text>
+      <g><rect class="box rd" x="150" y="225" width="160" height="45" rx="10"/><text class="t2" x="230" y="253">PostRepository</text></g>
+      <text class="s" x="232" y="285">강결합 · 교체/테스트 어려움 · 생성 책임이 흩어짐</text>
+
+      <rect class="box dash" x="485" y="10" width="445" height="280" rx="14"/>
+      <text class="t" x="707" y="36">✅ IoC : 컨테이너가 생성하고 주입</text>
+      <rect class="box sp" x="505" y="48" width="405" height="205" rx="16"/>
+      <text class="t2" x="707" y="72">ApplicationContext (IoC 컨테이너)</text>
+      <g><rect class="box bl" x="520" y="95" width="100" height="50" rx="10"/><text class="t2" x="570" y="125">Controller</text></g>
+      <g><rect class="box bl" x="660" y="95" width="100" height="50" rx="10"/><text class="t2" x="710" y="125">Service</text></g>
+      <g><rect class="box bl" x="800" y="95" width="100" height="50" rx="10"/><text class="t2" x="850" y="125">Repository</text></g>
+      <path class="edge" d="M620,120 L660,120"/><path class="edge" d="M760,120 L800,120"/>
+      <text class="s" x="640" y="112">주입</text><text class="s" x="780" y="112">주입</text>
+      <rect class="box or" x="520" y="170" width="380" height="36" rx="8"/><text class="s" x="710" y="193" style="fill:var(--text)">싱글톤 저장소 : Map&lt;빈 이름, 객체&gt; (한 번 만들어 재사용)</text>
+      <text class="s" x="707" y="233">설정 메타데이터 : @Component 스캔 · @Bean · 자동 설정</text>
+      <text class="s" x="707" y="278">개발자는 "무엇이 필요한가"만 선언 → 느슨한 결합</text>
+    </svg></div>
+
+    <h3>주입 방식 3가지 비교</h3>
+    <div class="codetabs">
+      <script type="text/plain" data-title="① 생성자 주입 (권장)" data-note="<b>final</b> 필드로 불변성 보장 · 필수 의존성 누락 시 시작 단계에서 실패 · 순환참조 조기 발견 · <code>new</code> 로 테스트 쉬움 · 생성자가 1개면 <code>@Autowired</code> 생략 가능">
+@Service
+public class PostService {
+  private final PostRepository repo;          // final → 불변
+
+  public PostService(PostRepository repo) {   // @Autowired 생략 가능
+    this.repo = repo;
+  }
+}
+
+// Lombok 으로 간결하게
+@Service
+@RequiredArgsConstructor
+public class PostService2 {
+  private final PostRepository repo;
+}
+</script>
+      <script type="text/plain" data-title="② 세터 주입" data-note="선택적/변경 가능한 의존성에 사용. 필드가 final 이 될 수 없고 누락돼도 객체가 만들어질 수 있음">
+@Service
+public class PostService {
+  private PostRepository repo;
+
+  @Autowired
+  public void setRepo(PostRepository repo) {
+    this.repo = repo;
+  }
+}
+</script>
+      <script type="text/plain" data-title="③ 필드 주입 (비권장)" data-note="코드는 짧지만 <b>컨테이너 없이는 주입 불가</b> → 단위 테스트 어려움, final 불가, 의존성이 숨겨져 순환참조를 알아채기 어려움">
+@Service
+public class PostService {
+  @Autowired
+  private PostRepository repo;   // 리플렉션으로 주입
+}
+</script>
+    </div>
+
+    <h3>빈이 여러 개일 때</h3>
+    <div class="codetabs">
+      <script type="text/plain" data-title="@Primary" data-note="기본으로 쓸 후보를 지정">
+@Primary
+@Component
+class KakaoPay implements Pay { }
+
+@Component
+class NaverPay implements Pay { }
+</script>
+      <script type="text/plain" data-title="@Qualifier" data-note="사용하는 쪽에서 이름으로 지정 (@Primary 보다 우선)">
+@Service
+class OrderService {
+  OrderService(@Qualifier("naverPay") Pay pay) { ... }
+}
+</script>
+      <script type="text/plain" data-title="List / Map 주입" data-note="같은 타입을 모두 주입받아 전략 패턴에 활용">
+@Service
+class PayRouter {
+  PayRouter(List<Pay> pays, Map<String, Pay> payMap) { ... }
+}
+</script>
+    </div>
+
+    <h3>빈 생명주기 (단계별로 눌러보기)</h3>
+    <div class="stepper" data-stepper="life">
+      <div class="diawrap"><svg class="dia" viewBox="0 0 940 190" role="img" aria-label="빈 생명주기">
+        <g class="sn" id="l1"><rect class="box bl" x="6" y="30" width="118" height="80" rx="10"/><text class="t2" x="65" y="64">컨테이너 시작</text><text class="s" x="65" y="86">refresh()</text></g>
+        <g class="sn" id="lb1"><path class="edge" d="M124,70 L141,70"/></g>
+        <g class="sn" id="l2"><rect class="box sp" x="141" y="30" width="118" height="80" rx="10"/><text class="t2" x="200" y="64">빈 정의 로딩</text><text class="s" x="200" y="86">@Component 스캔</text></g>
+        <g class="sn" id="lb2"><path class="edge" d="M259,70 L276,70"/></g>
+        <g class="sn" id="l3"><rect class="box sp" x="276" y="30" width="118" height="80" rx="10"/><text class="t2" x="335" y="64">인스턴스화</text><text class="s" x="335" y="86">생성자 호출</text></g>
+        <g class="sn" id="lb3"><path class="edge" d="M394,70 L411,70"/></g>
+        <g class="sn" id="l4"><rect class="box sp" x="411" y="30" width="118" height="80" rx="10"/><text class="t2" x="470" y="64">의존성 주입</text><text class="s" x="470" y="86">세터 / 필드</text></g>
+        <g class="sn" id="lb4"><path class="edge" d="M529,70 L546,70"/></g>
+        <g class="sn" id="l5"><rect class="box or" x="546" y="30" width="118" height="80" rx="10"/><text class="t2" x="605" y="64">초기화</text><text class="s" x="605" y="86">@PostConstruct</text></g>
+        <g class="sn" id="lb5"><path class="edge" d="M664,70 L681,70"/></g>
+        <g class="sn" id="l6"><rect class="box sp" x="681" y="30" width="118" height="80" rx="10"/><text class="t2" x="740" y="64">사용 (Ready)</text><text class="s" x="740" y="86">싱글톤 재사용</text></g>
+        <g class="sn" id="lb6"><path class="edge" d="M799,70 L816,70"/></g>
+        <g class="sn" id="l7"><rect class="box rd" x="816" y="30" width="118" height="80" rx="10"/><text class="t2" x="875" y="64">소멸</text><text class="s" x="875" y="86">@PreDestroy</text></g>
+        <g class="sn" id="l-note"><rect class="box pu" x="440" y="130" width="330" height="44" rx="10"/><text class="t2" x="605" y="150">BeanPostProcessor</text><text class="s" x="605" y="167">여기서 원본 빈 → AOP 프록시로 교체!</text></g>
+      </svg></div>
+    </div>
+
+    <h3>스코프</h3>
+    <div class="tablewrap"><table><thead><tr><th>스코프</th><th>의미</th><th>비고</th></tr></thead><tbody>
+      <tr><td><code>singleton</code></td><td>컨테이너당 1개 (기본값)</td><td>상태(필드)를 두면 동시성 문제 → <b>무상태</b>로 설계</td></tr>
+      <tr><td><code>prototype</code></td><td>요청할 때마다 새로 생성</td><td>소멸은 컨테이너가 관리하지 않음 (@PreDestroy 호출 X)</td></tr>
+      <tr><td><code>request</code> / <code>session</code></td><td>HTTP 요청 / 세션당 1개</td><td>웹 환경 전용</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ AOP ═══════════════ -->
+<section id="aop">
+  <h2>5. AOP (관점 지향 프로그래밍)</h2>
+  <div class="card">
+    <p>로그·트랜잭션·보안·시간 측정처럼 <b>여러 곳에 반복되는 횡단 관심사</b>를 핵심 로직에서 분리해 한곳(Aspect)에서 관리합니다. Spring AOP 는 대상 객체를 <b>프록시</b>로 감싸 <b>메서드 실행</b> 시점에 부가 기능을 끼워 넣습니다.</p>
+
+    <h3>용어 한 장 정리</h3>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 290" role="img" aria-label="AOP 용어 관계도">
+      <rect class="box pu" x="10" y="10" width="360" height="270" rx="14"/>
+      <text class="t" x="190" y="36">Aspect (횡단 관심사 모듈)</text>
+      <g><rect class="box" x="30" y="55" width="320" height="95" rx="10"/><text class="t2" x="190" y="78">Pointcut — 어디에? (Where)</text>
+        <text class="m" x="190" y="102">execution(* com.example..service.*.*(..))</text><text class="s" x="190" y="125">적용 대상 메서드를 고르는 표현식</text></g>
+      <g><rect class="box" x="30" y="165" width="320" height="100" rx="10"/><text class="t2" x="190" y="188">Advice — 무엇을·언제? (What · When)</text>
+        <text class="m" x="190" y="212">@Before @After @Around …</text><text class="s" x="190" y="236">실제 부가 기능 코드 + 실행 시점</text></g>
+      <path class="edge" d="M370,145 L470,145"/>
+      <text class="t2" x="420" y="128">Weaving</text><text class="s" x="420" y="168">프록시로 엮기</text>
+      <rect class="box sp" x="470" y="10" width="460" height="270" rx="14"/>
+      <text class="t" x="700" y="36">Target (대상 객체) : PostService</text>
+      <g><rect class="box sp" x="495" y="55" width="410" height="42" rx="21"/><circle cx="520" cy="76" r="8" fill="#f08c00"/><text class="m l" x="540" y="81">createPost()</text><text class="s" x="890" y="80" style="text-anchor:end">Join Point ✔ 선택됨</text></g>
+      <g><rect class="box sp" x="495" y="107" width="410" height="42" rx="21"/><circle cx="520" cy="128" r="8" fill="#f08c00"/><text class="m l" x="540" y="133">findPost()</text><text class="s" x="890" y="132" style="text-anchor:end">Join Point ✔ 선택됨</text></g>
+      <g><rect class="box sp" x="495" y="159" width="410" height="42" rx="21"/><circle cx="520" cy="180" r="8" fill="#f08c00"/><text class="m l" x="540" y="185">deletePost()</text><text class="s" x="890" y="184" style="text-anchor:end">Join Point ✔ 선택됨</text></g>
+      <g><rect class="box dash" x="495" y="211" width="410" height="42" rx="21"/><circle cx="520" cy="232" r="8" fill="#8795a6"/><text class="m l" x="540" y="237">(다른 패키지) util.format()</text><text class="s" x="890" y="236" style="text-anchor:end">Pointcut 에 불일치</text></g>
+      <text class="s" x="700" y="272">Join Point = 어드바이스가 끼어들 수 있는 지점 (Spring AOP: 메서드 실행만)</text>
+    </svg></div>
+
+    <h3>호출 순서 시뮬레이터</h3>
+    <p>대상 메서드 호출이 프록시 안에서 어떻게 진행되는지 단계별로 확인하세요.</p>
+    <div class="stepper" data-stepper="aop">
+      <div class="diawrap"><svg class="dia" viewBox="0 0 940 420" role="img" aria-label="AOP 프록시 어드바이스 체인">
+        <g class="sn" id="n-client"><rect class="box bl" x="20" y="150" width="120" height="90" rx="12"/><text class="t" x="80" y="190">Client</text><text class="s" x="80" y="210">Controller 등</text></g>
+        <g class="sn" id="n-proxy"><rect class="box pu" x="230" y="20" width="300" height="385" rx="16"/><text class="t" x="380" y="48">Proxy (CGLIB)</text></g>
+        <g class="sn" id="r-around1"><rect class="box" x="250" y="70" width="260" height="44" rx="8"/><text class="t2" x="380" y="97">@Around  (proceed 전)</text></g>
+        <g class="sn" id="r-before"><rect class="box" x="250" y="125" width="260" height="44" rx="8"/><text class="t2" x="380" y="152">@Before</text></g>
+        <g class="sn" id="r-call"><rect class="box sp" x="250" y="180" width="260" height="44" rx="8"/><text class="t2" x="380" y="207">pjp.proceed() → 대상 호출</text></g>
+        <g class="sn" id="r-afterret"><rect class="box" x="250" y="235" width="260" height="44" rx="8"/><text class="t2" x="380" y="262">@AfterReturning / @AfterThrowing</text></g>
+        <g class="sn" id="r-after"><rect class="box" x="250" y="290" width="260" height="44" rx="8"/><text class="t2" x="380" y="317">@After  (finally)</text></g>
+        <g class="sn" id="r-around2"><rect class="box" x="250" y="345" width="260" height="44" rx="8"/><text class="t2" x="380" y="372">@Around  (proceed 후)</text></g>
+        <g class="sn" id="n-target"><rect class="box sp" x="700" y="170" width="210" height="100" rx="12"/><text class="t" x="805" y="212">Target</text><text class="s" x="805" y="234">PostService (진짜 객체)</text><text class="s" x="805" y="252">핵심 로직만 존재</text></g>
+        <g class="sn" id="a-in"><path class="edge" d="M140,190 L230,190"/><text class="s" x="185" y="180">호출</text></g>
+        <g class="sn" id="a-out"><path class="edge back" d="M230,225 L140,225"/><text class="s" x="185" y="243">결과</text></g>
+        <g class="sn" id="a-call"><path class="edge" d="M510,202 L700,202"/></g>
+        <g class="sn" id="a-ret1"><path class="edge back" d="M700,257 L510,257"/></g>
+      </svg></div>
+    </div>
+    <div class="callout warn"><b>순서 암기</b> 들어갈 때: <b>Around → Before → 대상</b> / 나올 때: <b>AfterReturning(or Throwing) → After → Around(이후)</b>. 어드바이스가 여러 Aspect 에 있으면 <code>@Order</code> 숫자가 작을수록 바깥쪽입니다.</div>
+
+    <h3>Aspect 코드</h3>
+    <script type="text/plain" class="code" data-title="TimingAspect.java">
+@Aspect
+@Component                                   // 빈으로 등록해야 동작
+public class TimingAspect {
+
+  @Pointcut("execution(* com.example.blog.service..*(..))")
+  void serviceLayer() { }
+
+  @Around("serviceLayer()")
+  public Object measure(ProceedingJoinPoint pjp) throws Throwable {
+    long start = System.nanoTime();
+    try {
+      return pjp.proceed();                 // ← 실제 대상 메서드 호출
+    } finally {
+      long ms = (System.nanoTime() - start) / 1_000_000;
+      log.info("{} {}ms", pjp.getSignature().toShortString(), ms);
+    }
+  }
+}
+</script>
+    <div class="tablewrap"><table><thead><tr><th>포인트컷 지시자</th><th>의미</th><th>예</th></tr></thead><tbody>
+      <tr><td><code>execution</code></td><td>메서드 시그니처 매칭 (가장 많이 사용)</td><td><code>execution(* com..service.*.*(..))</code></td></tr>
+      <tr><td><code>within</code></td><td>특정 타입/패키지 내부</td><td><code>within(com.example.blog.service..*)</code></td></tr>
+      <tr><td><code>@annotation</code></td><td>특정 어노테이션이 붙은 메서드</td><td><code>@annotation(com.example.Timed)</code></td></tr>
+      <tr><td><code>bean</code></td><td>빈 이름 매칭 (Spring 전용)</td><td><code>bean(*Service)</code></td></tr></tbody></table></div>
+
+    <h3>프록시의 한계 : 자기 호출 (self-invocation) <span class="tag">단골 함정</span></h3>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 210" role="img" aria-label="자기 호출 문제">
+      <g><rect class="box bl" x="20" y="70" width="110" height="60" rx="10"/><text class="t" x="75" y="105">Client</text></g>
+      <path class="edge" d="M130,100 L210,100"/><text class="s grn" x="170" y="88" style="font-weight:700">① 외부 호출</text>
+      <g><rect class="box pu" x="210" y="50" width="150" height="100" rx="12"/><text class="t" x="285" y="95">Proxy</text><text class="s" x="285" y="115">어드바이스 적용 ✔</text></g>
+      <path class="edge" d="M360,95 L470,95"/>
+      <rect class="box sp" x="470" y="20" width="450" height="170" rx="14"/><text class="t2" x="695" y="44">Target (실제 객체)</text>
+      <g><rect class="box" x="495" y="62" width="160" height="50" rx="10"/><text class="m" x="575" y="92">methodA()</text></g>
+      <g><rect class="box or" x="725" y="62" width="170" height="50" rx="10"/><text class="m" x="810" y="85">methodB()</text><text class="s" x="810" y="102">@Transactional</text></g>
+      <path class="edge bad" d="M575,112 C575,160 810,160 810,112"/>
+      <text class="s red" x="695" y="176" style="font-weight:700">② this.methodB() — 프록시를 거치지 않음 ✗ (어드바이스 미적용)</text>
+    </svg></div>
+    <ul><li>해결: <b>별도 빈으로 분리</b>해서 주입받아 호출 (가장 권장) / 외부 진입 메서드에 어노테이션 적용</li>
+      <li>같은 이유로 <code>private</code> · <code>final</code> 메서드, <code>new</code> 로 직접 만든 객체에는 적용 안 됨</li></ul>
+
+    <div class="tablewrap"><table><thead><tr><th></th><th>JDK 동적 프록시</th><th>CGLIB</th></tr></thead><tbody>
+      <tr><td>방식</td><td><b>인터페이스</b> 구현 프록시</td><td>대상 <b>클래스를 상속</b>한 프록시</td></tr>
+      <tr><td>조건</td><td>인터페이스 필요</td><td>final 클래스/메서드 불가</td></tr>
+      <tr><td>부트 기본</td><td colspan="2"><code>proxyTargetClass=true</code> → <b>CGLIB 기본</b> (인터페이스가 있어도)</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ PSA ═══════════════ -->
+<section id="psa">
+  <h2>6. PSA (Portable Service Abstraction)</h2>
+  <div class="card">
+    <p><b>PSA = 이식 가능한 서비스 추상화.</b> 특정 기술(JDBC, JPA, Redis, Tomcat …)에 종속되지 않도록 <b>일관된 추상 인터페이스</b>를 제공해, <b>코드를 바꾸지 않고 구현 기술만 교체</b>할 수 있게 하는 설계입니다.</p>
+    <div class="diawrap"><svg class="dia" viewBox="0 0 940 390" role="img" aria-label="PSA 계층 구조">
+      <text class="lane-t" x="470" y="12" style="text-anchor:middle">같은 코드, 바뀌는 건 아래 구현체뿐</text>
+      <g><rect class="box bl" x="20" y="25" width="280" height="60" rx="12"/><text class="t" x="160" y="52">@Transactional</text><text class="s" x="160" y="71">서비스 메서드 (내 코드)</text></g>
+      <g><rect class="box bl" x="330" y="25" width="280" height="60" rx="12"/><text class="t" x="470" y="52">@Cacheable</text><text class="s" x="470" y="71">서비스 메서드 (내 코드)</text></g>
+      <g><rect class="box bl" x="640" y="25" width="280" height="60" rx="12"/><text class="t" x="780" y="52">SpringApplication.run()</text><text class="s" x="780" y="71">웹 서버 시작 (내 코드)</text></g>
+      <path class="edge" d="M160,85 L160,130"/><path class="edge" d="M470,85 L470,130"/><path class="edge" d="M780,85 L780,130"/>
+      <g><rect class="box sp" x="20" y="130" width="280" height="70" rx="12"/><text class="t2" x="160" y="160">PlatformTransactionManager</text><text class="s" x="160" y="180">트랜잭션 추상화 (인터페이스)</text></g>
+      <g><rect class="box sp" x="330" y="130" width="280" height="70" rx="12"/><text class="t2" x="470" y="160">CacheManager</text><text class="s" x="470" y="180">캐시 추상화 (인터페이스)</text></g>
+      <g><rect class="box sp" x="640" y="130" width="280" height="70" rx="12"/><text class="t2" x="780" y="160">WebServer</text><text class="s" x="780" y="180">서블릿 컨테이너 추상화</text></g>
+      <path class="edge" d="M160,200 L160,240"/><path class="edge" d="M470,200 L470,240"/><path class="edge" d="M780,200 L780,240"/>
+      <g><rect class="box or" x="20" y="240" width="88" height="64" rx="10"/><text class="t2" x="64" y="268">JDBC</text><text class="s" x="64" y="288">DataSource</text></g>
+      <g><rect class="box or" x="116" y="240" width="88" height="64" rx="10"/><text class="t2" x="160" y="268">JPA</text><text class="s" x="160" y="288">Jpa TM</text></g>
+      <g><rect class="box or" x="212" y="240" width="88" height="64" rx="10"/><text class="t2" x="256" y="268">JTA</text><text class="s" x="256" y="288">분산 TX</text></g>
+      <g><rect class="box or" x="330" y="240" width="88" height="64" rx="10"/><text class="t2" x="374" y="268">Simple</text><text class="s" x="374" y="288">ConcurrentMap</text></g>
+      <g><rect class="box or" x="426" y="240" width="88" height="64" rx="10"/><text class="t2" x="470" y="268">Caffeine</text><text class="s" x="470" y="288">로컬 고성능</text></g>
+      <g><rect class="box or" x="522" y="240" width="88" height="64" rx="10"/><text class="t2" x="566" y="268">Redis</text><text class="s" x="566" y="288">분산 캐시</text></g>
+      <g><rect class="box or" x="640" y="240" width="88" height="64" rx="10"/><text class="t2" x="684" y="268">Tomcat</text><text class="s" x="684" y="288">기본값</text></g>
+      <g><rect class="box or" x="736" y="240" width="88" height="64" rx="10"/><text class="t2" x="780" y="268">Jetty</text><text class="s" x="780" y="288">대체 가능</text></g>
+      <g><rect class="box or" x="832" y="240" width="88" height="64" rx="10"/><text class="t2" x="876" y="268">Netty</text><text class="s" x="876" y="288">WebFlux</text></g>
+      <rect class="box dash" x="20" y="325" width="900" height="50" rx="12"/>
+      <text class="t2" x="470" y="347">⇄ 의존성(라이브러리)·설정만 바꾸면 구현체가 교체된다 — 비즈니스 코드는 그대로</text>
+      <text class="s" x="470" y="365">이 외에도: JavaMailSender · TaskExecutor(@Async) · DataAccessException 변환 · Resource 추상화 등</text>
+    </svg></div>
+
+    <div class="grid2">
+      <script type="text/plain" class="code" data-title="코드는 그대로 (추상화 사용)">
+@Service
+public class PostService {
+
+  @Transactional                       // 어떤 TransactionManager 든 동일
+  public Post create(PostRequest r) { ... }
+
+  @Cacheable("posts")                  // 어떤 CacheManager 든 동일
+  public Post find(Long id) { ... }
+}
+</script>
+      <script type="text/plain" class="code" data-title="구현체만 교체 (application.yml)">
+# 로컬 개발: 기본 ConcurrentMap 캐시
+# 운영: Redis 의존성 추가 + 설정 한 줄
+spring:
+  cache:
+    type: redis
+</script>
+    </div>
+
+    <h3>@Transactional 핵심 정리</h3>
+    <div class="tablewrap"><table><thead><tr><th>속성</th><th>설명</th></tr></thead><tbody>
+      <tr><td><code>readOnly = true</code></td><td>읽기 전용 힌트. 조회 메서드에 사용 (flush 생략 등 최적화)</td></tr>
+      <tr><td><code>rollbackFor</code></td><td>기본은 <b>RuntimeException · Error 만 롤백</b>. 체크 예외는 <code>rollbackFor = Exception.class</code> 지정</td></tr>
+      <tr><td><code>propagation</code></td><td>기본 <code>REQUIRED</code>(기존 트랜잭션 참여, 없으면 생성). <code>REQUIRES_NEW</code>(항상 새로 생성)</td></tr>
+      <tr><td><code>isolation</code></td><td>격리 수준 (기본: DB 기본값)</td></tr>
+      <tr><td>동작 원리</td><td><b>AOP 프록시</b>가 메서드 앞뒤로 begin / commit / rollback → 자기 호출·private 메서드에는 적용 안 됨</td></tr></tbody></table></div>
+    <div class="callout"><b>AOP 와 PSA 의 관계</b> @Transactional 은 <b>AOP(프록시로 가로채기)</b> + <b>PSA(PlatformTransactionManager 추상화)</b> 가 함께 만든 기능입니다. 시험에서 “@Transactional 이 이용하는 두 기술”로 나옵니다.</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 실제 코드 ═══════════════ -->
+<section id="code">
+  <h2>7. 실제 코드 : 블로그 CRUD 전 계층</h2>
+  <div class="card">
+    <h3 style="margin-top:0">POST /api/posts 한 줄씩 추적하기</h3>
+    <div class="stepper" data-stepper="flow">
+      <div class="diawrap"><svg class="dia" viewBox="0 0 940 250" role="img" aria-label="계층형 아키텍처 요청 흐름">
+        <g class="sn" id="f-dto"><rect class="box pu" x="170" y="12" width="150" height="48" rx="10"/><text class="t2" x="245" y="33">PostRequest</text><text class="s" x="245" y="50">record + @Valid</text></g>
+        <g class="sn" id="f-tx"><rect class="box pu" x="370" y="12" width="150" height="48" rx="10"/><text class="t2" x="445" y="33">@Transactional</text><text class="s" x="445" y="50">AOP 프록시 + PSA</text></g>
+        <g class="sn" id="f-ent"><rect class="box pu" x="570" y="12" width="150" height="48" rx="10"/><text class="t2" x="645" y="33">Post</text><text class="s" x="645" y="50">@Entity</text></g>
+        <g class="sn" id="f-client"><rect class="box bl" x="10" y="90" width="110" height="90" rx="12"/><text class="t" x="65" y="130">Client</text><text class="s" x="65" y="150">JSON 요청</text></g>
+        <g class="sn" id="f-ctrl"><rect class="box sp" x="170" y="90" width="150" height="90" rx="12"/><text class="t" x="245" y="128">Controller</text><text class="s" x="245" y="148">입력 검증 · 위임</text></g>
+        <g class="sn" id="f-svc"><rect class="box sp" x="370" y="90" width="150" height="90" rx="12"/><text class="t" x="445" y="128">Service</text><text class="s" x="445" y="148">비즈니스 로직</text></g>
+        <g class="sn" id="f-repo"><rect class="box sp" x="570" y="90" width="150" height="90" rx="12"/><text class="t" x="645" y="128">Repository</text><text class="s" x="645" y="148">JpaRepository</text></g>
+        <g class="sn" id="f-db"><rect class="box or" x="780" y="90" width="140" height="90" rx="12"/><text class="t" x="850" y="128">DB</text><text class="s" x="850" y="148">H2 / MySQL</text></g>
+        <g class="sn" id="f1"><path class="edge" d="M120,118 L170,118"/></g>
+        <g class="sn" id="f2"><path class="edge" d="M320,118 L370,118"/></g>
+        <g class="sn" id="f3"><path class="edge" d="M520,118 L570,118"/></g>
+        <g class="sn" id="f4"><path class="edge" d="M720,118 L780,118"/></g>
+        <g class="sn" id="g1"><path class="edge back" d="M170,152 L120,152"/></g>
+        <g class="sn" id="g2"><path class="edge back" d="M370,152 L320,152"/></g>
+        <g class="sn" id="g3"><path class="edge back" d="M570,152 L520,152"/></g>
+        <g class="sn" id="g4"><path class="edge back" d="M780,152 L720,152"/></g>
+        <text class="lane-t" x="470" y="215" style="text-anchor:middle">실선 → 요청 방향 · 점선 ← 응답 방향 · 위쪽 보라색: 그 계층에서 쓰이는 핵심 요소</text>
+        <text class="s" x="470" y="236">원칙: Controller → Service → Repository 단방향 의존 (Controller 가 Repository 직접 호출 금지)</text>
+      </svg></div>
+    </div>
+
+    <h3>전체 소스 (어노테이션을 클릭하면 설명이 나옵니다)</h3>
+    <div class="codetabs">
+      <script type="text/plain" data-title="build.gradle" data-note="Boot 4 기준 의존성. 스타터 이름이 기술별로 분리된 점 확인 (webmvc, aspectj, *-test).">
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    runtimeOnly 'com.h2database:h2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+}
+</script>
+      <script type="text/plain" data-title="BlogApplication" data-note="메인 클래스는 <b>최상위 패키지</b>에 둡니다 (컴포넌트 스캔 기준).">
+package com.example.blog;
+
+@SpringBootApplication
+public class BlogApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(BlogApplication.class, args);
+  }
+}
+</script>
+      <script type="text/plain" data-title="Post (Entity)" data-note="JPA 엔티티: 기본 생성자 필수(protected 가능), final 클래스 불가. setter 남발 대신 의도가 드러나는 메서드 사용.">
+package com.example.blog.domain;
+
+@Entity
+@Table(name = "posts")
+public class Post {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @Column(nullable = false, length = 100)
+  private String title;
+
+  @Column(nullable = false)
+  private String content;
+
+  protected Post() { }                       // JPA 용
+
+  public Post(String title, String content) {
+    this.title = title;
+    this.content = content;
+  }
+
+  public void change(String title, String content) {   // 변경 감지(dirty checking)
+    this.title = title;
+    this.content = content;
+  }
+
+  public Long getId() { return id; }
+  public String getTitle() { return title; }
+  public String getContent() { return content; }
+}
+</script>
+      <script type="text/plain" data-title="PostRepository" data-note="인터페이스만 선언 → 스프링 데이터가 런타임에 프록시 구현체 생성. 메서드 이름으로 쿼리 자동 생성.">
+package com.example.blog.repository;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+  List<Post> findByTitleContaining(String keyword);   // select … where title like %?%
+}
+</script>
+      <script type="text/plain" data-title="DTO (record)" data-note="요청/응답 전용 객체. 엔티티를 API 에 직접 노출하지 않기. record 는 불변이라 DTO 에 적합.">
+package com.example.blog.dto;
+
+public record PostRequest(
+    @NotBlank @Size(max = 100) String title,
+    @NotBlank String content) { }
+
+public record PostResponse(Long id, String title, String content) {
+  public static PostResponse from(Post p) {
+    return new PostResponse(p.getId(), p.getTitle(), p.getContent());
+  }
+}
+</script>
+      <script type="text/plain" data-title="PostService" data-note="클래스 기본은 읽기 전용 트랜잭션, 쓰기 메서드만 @Transactional 로 덮어쓰기. 생성자 주입(@RequiredArgsConstructor).">
+package com.example.blog.service;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class PostService {
+
+  private final PostRepository repo;
+
+  @Transactional
+  public PostResponse create(PostRequest req) {
+    Post saved = repo.save(new Post(req.title(), req.content()));
+    return PostResponse.from(saved);
+  }
+
+  public PostResponse find(Long id) {
+    return repo.findById(id)
+        .map(PostResponse::from)
+        .orElseThrow(() -> new PostNotFoundException(id));
+  }
+
+  @Transactional
+  public PostResponse update(Long id, PostRequest req) {
+    Post post = repo.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+    post.change(req.title(), req.content());      // save() 없이도 커밋 시 UPDATE
+    return PostResponse.from(post);
+  }
+
+  @Transactional
+  public void delete(Long id) {
+    repo.deleteById(id);
+  }
+}
+</script>
+      <script type="text/plain" data-title="PostController" data-note="컨트롤러는 얇게: 요청 변환·검증 → 서비스 위임 → 응답 상태 결정.">
+package com.example.blog.controller;
+
+@RestController
+@RequestMapping("/api/posts")
+@RequiredArgsConstructor
+public class PostController {
+
+  private final PostService postService;
+
+  @GetMapping("/{id}")
+  public PostResponse get(@PathVariable Long id) {
+    return postService.find(id);
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public PostResponse create(@Valid @RequestBody PostRequest req) {
+    return postService.create(req);
+  }
+
+  @PutMapping("/{id}")
+  public PostResponse update(@PathVariable Long id, @Valid @RequestBody PostRequest req) {
+    return postService.update(id, req);
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long id) {
+    postService.delete(id);
+  }
+}
+</script>
+      <script type="text/plain" data-title="예외 처리" data-note="@RestControllerAdvice 가 모든 컨트롤러의 예외를 한 곳에서 JSON 으로 변환.">
+public class PostNotFoundException extends RuntimeException {
+  public PostNotFoundException(Long id) {
+    super("게시글 " + id + " 를 찾을 수 없습니다");
+  }
+}
+
+@RestControllerAdvice
+class GlobalExceptionHandler {
+
+  @ExceptionHandler(PostNotFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map<String, String> notFound(PostNotFoundException e) {
+    return Map.of("message", e.getMessage());
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map<String, String> invalid(MethodArgumentNotValidException e) {
+    return Map.of("message", "입력값 검증 실패");
+  }
+}
+</script>
+      <script type="text/plain" data-title="LogAspect (AOP)" data-note="서비스 계층 전체에 호출 로그를 남기는 횡단 관심사. 서비스 코드는 한 줄도 바뀌지 않음.">
+@Aspect
+@Component
+@Slf4j
+public class LogAspect {
+
+  @Pointcut("execution(* com.example.blog.service..*(..))")
+  void serviceLayer() { }
+
+  @Before("serviceLayer()")
+  void before(JoinPoint jp) {
+    log.info("▶ {}", jp.getSignature().toShortString());
+  }
+
+  @AfterThrowing(pointcut = "serviceLayer()", throwing = "ex")
+  void fail(JoinPoint jp, Exception ex) {
+    log.warn("✖ {} : {}", jp.getSignature().toShortString(), ex.getMessage());
+  }
+}
+</script>
+      <script type="text/plain" data-title="테스트" data-note="Boot 4: @MockBean → @MockitoBean. @WebMvcTest 패키지 위치가 모듈화에 맞춰 이동했으니 import 는 IDE 자동완성을 따르세요.">
+@WebMvcTest(PostController.class)
+class PostControllerTest {
+
+  @Autowired MockMvc mockMvc;
+
+  @MockitoBean PostService postService;        // Boot 4 : @MockBean 대체
+
+  @Test
+  void getPost() throws Exception {
+    given(postService.find(1L)).willReturn(new PostResponse(1L, "제목", "내용"));
+
+    mockMvc.perform(get("/api/posts/1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.title").value("제목"));
+  }
+
+  @Test
+  void createPost_invalid() throws Exception {
+    mockMvc.perform(post("/api/posts")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"title\":\"\",\"content\":\"x\"}"))
+        .andExpect(status().isBadRequest());
+  }
+}
+</script>
+      <script type="text/plain" data-title="application.yml">
+spring:
+  datasource:
+    url: jdbc:h2:mem:blog
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+server:
+  port: 8080
+</script>
+    </div>
+
+    <div class="callout"><b>직접 실행해 보기 (로컬)</b>
+      <ol>
+        <li><a href="https://start.spring.io" target="_blank" rel="noopener">start.spring.io</a> 에서 Spring Boot 4.0.x · Gradle · Java 21 · 의존성(Spring Web, Data JPA, Validation, H2, Lombok, AspectJ) 선택 → 다운로드</li>
+        <li>위 탭의 파일들을 같은 패키지 구조로 복사</li>
+        <li><code>./gradlew bootRun</code> 실행 → 아래 curl 로 확인</li>
+      </ol>
+    </div>
+    <script type="text/plain" class="code" data-title="터미널에서 API 호출해 보기">
+curl -i -X POST localhost:8080/api/posts \
+  -H "Content-Type: application/json" \
+  -d '{"title":"스프링","content":"재밌다"}'      # 201 Created
+
+curl localhost:8080/api/posts/1                     # 200 OK
+curl -i localhost:8080/api/posts/999                # 404 (PostNotFoundException)
+curl -i -X POST localhost:8080/api/posts \
+  -H "Content-Type: application/json" -d '{"title":""}'   # 400 (@Valid 실패)
+</script>
+  </div>
+</section>
+
+<!-- ═══════════════ 실습실 ═══════════════ -->
+<section id="lab">
+  <h2>8. 🧪 실습실</h2>
+  <p class="muted">브라우저 안에서 직접 손으로 해 보는 4가지 실습입니다. (브라우저에서는 Java 를 실행할 수 없으므로 동작 규칙을 그대로 옮긴 시뮬레이터로 구성했습니다.)</p>
+
+  <div class="card"><h3 style="margin-top:0">실습 ① 코드 빈칸 완성</h3>
+    <p>드롭다운에서 알맞은 어노테이션/키워드를 골라 코드를 완성하고 <b>채점</b>하세요. 틀린 칸은 해설이 나옵니다.</p>
+    <div id="lab-fill"></div></div>
+
+  <div class="card"><h3 style="margin-top:0">실습 ② Spring MVC 요청 시뮬레이터</h3>
+    <p>위 컨트롤러에 직접 HTTP 요청을 보내 보세요. <b>DispatcherServlet 의 처리 과정</b>이 단계별로 추적되고, POST/PUT/DELETE 는 실제로 아래 DB 표를 바꿉니다. 일부러 틀린 요청(없는 id, 문자 id, 빈 title, 잘못된 JSON, 지원하지 않는 메서드)을 보내 어떤 예외가 나는지 확인하세요.</p>
+    <div id="lab-mvc"></div></div>
+
+  <div class="card"><h3 style="margin-top:0">실습 ③ 에러 로그 디버깅</h3>
+    <p>코드와 에러 로그를 보고 <b>원인과 해결책</b>을 고르세요. 시험에 자주 나오는 함정들입니다.</p>
+    <div id="lab-bug"></div></div>
+
+  <div class="card"><h3 style="margin-top:0">실습 ④ AOP 어드바이스 샌드박스</h3>
+    <p>어드바이스를 켜고 끄며 <b>실행 순서</b>를 눈으로 확인하세요. 대상이 예외를 던질 때 @Around 의 후반부가 어떻게 되는지도 확인!</p>
+    <div id="lab-aop"></div></div>
+</section>
+
+<!-- ═══════════════ 암기 ═══════════════ -->
+<section id="annotations">
+  <h2>9. 어노테이션 암기</h2>
+  <div class="card">
+    <p>분류를 골라 <b>카드(뒤집기)</b>, <b>객관식</b>, <b>빈칸 입력</b>, <b>전체 목록(이름 가리기)</b>로 반복하세요. 외운 표시는 자동 저장됩니다.
+      <span class="muted">단축키(카드): ← 헷갈려요 · → 외웠어요 · F 뒤집기</span></p>
+    <div id="ann-app"></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 모의고사 ═══════════════ -->
+<section id="exam">
+  <h2>10. 모의고사</h2>
+  <div class="card"><div id="exam-app"></div></div>
+</section>
+
+<!-- ═══════════════ 요약표 ═══════════════ -->
+<section id="cheat">
+  <h2>11. 시험 직전 요약표</h2>
+  <div class="card">
+    <h3 style="margin-top:0">한 줄 정의</h3>
+    <div class="tablewrap"><table><tbody>
+      <tr><td><b>IoC</b></td><td>객체의 생성·관리·연결 제어권이 개발자 → 컨테이너로 넘어간 것</td></tr>
+      <tr><td><b>DI</b></td><td>의존 객체를 외부에서 주입 (생성자 / 세터 / 필드) — IoC 의 구현 방법</td></tr>
+      <tr><td><b>Bean</b></td><td>스프링 컨테이너가 생성·관리하는 객체 (기본 싱글톤)</td></tr>
+      <tr><td><b>ApplicationContext</b></td><td>BeanFactory 를 확장한 IoC 컨테이너 (이벤트, 메시지, 환경 등 제공)</td></tr>
+      <tr><td><b>AOP</b></td><td>횡단 관심사를 분리해 프록시로 메서드 실행 전후에 적용</td></tr>
+      <tr><td><b>PSA</b></td><td>기술 종속 없이 일관된 추상화 제공 → 구현체 교체 가능 (@Transactional, @Cacheable …)</td></tr>
+      <tr><td><b>MVC</b></td><td>Model(데이터·로직) · View(화면) · Controller(제어) 역할 분리</td></tr>
+      <tr><td><b>DispatcherServlet</b></td><td>모든 요청의 진입점인 Front Controller</td></tr>
+      <tr><td><b>AutoConfiguration</b></td><td>클래스패스·조건(@ConditionalOn…)으로 빈을 자동 등록</td></tr>
+      <tr><td><b>Starter</b></td><td>관련 의존성을 한 번에 묶은 의존성 패키지</td></tr>
+    </tbody></table></div>
+
+    <h3>헷갈리는 비교</h3>
+    <div class="tablewrap"><table><thead><tr><th>비교</th><th>A</th><th>B</th></tr></thead><tbody>
+      <tr><td>@Controller vs @RestController</td><td>반환값 = 뷰 이름</td><td>반환값 = 응답 본문(JSON) (@ResponseBody 포함)</td></tr>
+      <tr><td>@Component vs @Bean</td><td>클래스에 붙임 · 스캔으로 등록</td><td>메서드에 붙임 · 외부 라이브러리 객체 등록</td></tr>
+      <tr><td>@Valid vs @Validated</td><td>jakarta 표준 · 중첩 객체 검증</td><td>Spring · 그룹 검증 · 클래스 레벨 메서드 검증</td></tr>
+      <tr><td>@NotNull / @NotEmpty / @NotBlank</td><td>null 만 불가 / null·빈값 불가</td><td>null·빈문자·공백문자 모두 불가 (문자열)</td></tr>
+      <tr><td>@Before / @After / @Around</td><td>실행 전 / 실행 후(항상)</td><td>전후 모두 + 반환값·예외 제어 (proceed 필수)</td></tr>
+      <tr><td>@Primary vs @Qualifier</td><td>기본 후보 지정(공급자 쪽)</td><td>이름으로 지정(사용자 쪽, 우선)</td></tr>
+      <tr><td>JDK Proxy vs CGLIB</td><td>인터페이스 기반</td><td>클래스 상속 기반 (부트 기본)</td></tr>
+      <tr><td>@SpringBootTest vs @WebMvcTest</td><td>전체 컨텍스트(느림)</td><td>웹 계층 슬라이스(빠름) + @MockitoBean</td></tr>
+      <tr><td>@MockBean vs @MockitoBean</td><td>Boot 3 까지</td><td>Boot 4 (Framework 7) — 이쪽이 정답</td></tr>
+    </tbody></table></div>
+
+    <h3>암기 문장</h3>
+    <ul>
+      <li>요청 흐름: <b>DispatcherServlet → HandlerMapping → HandlerAdapter → Controller → … → ViewResolver/MessageConverter</b></li>
+      <li>빈 생명주기: <b>생성 → 의존성 주입 → @PostConstruct → 사용 → @PreDestroy</b>, AOP 프록시는 초기화 직후 <b>BeanPostProcessor</b> 에서 생성</li>
+      <li>@Transactional: <b>프록시 기반</b> · RuntimeException 롤백 · 자기호출/private 무효</li>
+      <li>어드바이스 순서: <b>Around → Before → 대상 → AfterReturning/Throwing → After → Around(후)</b></li>
+      <li>컴포넌트 스캔: <b>메인 클래스 패키지 + 하위</b></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer>
+  Spring Boot 4 중간고사 대비 · 정적 사이트 (GitHub Pages) · 학습 보조용이며, 시험은 수업 자료를 우선하세요.
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>
