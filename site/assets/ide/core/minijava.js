@@ -8,7 +8,7 @@ const { simple } = IDE;
 
 class Unsupported extends Error {}
 class AssertionFail extends Error {}
-class JavaThrow extends Error { constructor(name, msg) { super(name + ': ' + msg); this.javaName = name; this.javaMsg = msg; } }
+class JavaThrow extends Error { constructor(name, msg, cause) { super(name + ': ' + msg); this.javaName = name; this.javaMsg = msg; this.cause = cause || null; } }
 class ReturnSignal { constructor(v) { this.v = v; } }
 
 /* ───────────── 토크나이저 ───────────── */
@@ -154,13 +154,18 @@ class Interp {
   typeOf(name) { return this.model.types.get(name); }
   instantiate(T, args) {
     const f = {};
-    if (T.kind === 'record') { T.comps.forEach((c, i) => { f[c.name] = args[i] ?? null; }); return { __t: T.name, f, T }; }
-    T.fields.filter(x => !x.mods.includes('static')).forEach(x => { f[x.name] = /^(int|long|short|byte|double|float)$/.test(x.type) ? 0 : x.type === 'boolean' ? false : null; });
+    if (T.kind === 'record') T.comps.forEach(c => { f[c.name] = null; });
+    else T.fields.filter(x => !x.mods.includes('static')).forEach(x => { f[x.name] = /^(int|long|short|byte|double|float)$/.test(x.type) ? 0 : x.type === 'boolean' ? false : null; });
     const inst = { __t: T.name, f, T };
+    this.construct(T, inst, args);
+    return inst;
+  }
+  construct(T, inst, args) {
     const ctor = T.ctors.find(c => c.params.length === args.length);
     if (ctor) this.run(ctor.body || '', { vars: new Map(ctor.params.map((pm, i) => [pm.name, args[i]])), self: inst, T });
+    else if (T.kind === 'record' && args.length === T.comps.length) T.comps.forEach((c, i) => { inst.f[c.name] = args[i] ?? null; });
+    else if (args.length && lombokCtorFields(T, args.length)) lombokCtorFields(T, args.length).forEach((f, i) => { inst.f[f.name] = args[i] ?? null; });
     else if (args.length) throw new Unsupported(`${T.name} 에 인자 ${args.length}개 생성자가 없습니다`);
-    return inst;
   }
   run(body, scope) {
     const stmts = typeof body === 'string' ? parseStatements(body) : body;
@@ -224,6 +229,7 @@ class Interp {
       case 'get': { const o = this.ev(n.obj, sc); if (isInst(o)) return o.f[n.n]; if (o && o.__class) return { __class: n.n, outer: o.__class }; throw new Unsupported('필드 접근 .' + n.n); }
       case 'mref': {
         const target = n.obj.k === 'id' && !sc.vars.has(n.obj.n) ? { __class: n.obj.n } : this.ev(n.obj, sc);
+        if (n.n === 'new' && target && target.__class) return (...args) => this.evNew({ t: target.__class, args: args.map(v => ({ k: 'lit', v })) }, sc);
         return (...args) => (target && target.__class ? this.callStatic(target.__class, n.n, args, n) : this.callMethod(target, n.n, args, n));
       }
       case 'new': return this.evNew(n, sc);
@@ -236,6 +242,7 @@ class Interp {
     if (T) return this.instantiate(T, args);
     if (n.t === 'ArrayList' || n.t === 'LinkedList') return [];
     if (n.t === 'Object') return {};
+    if (/(Exception|Error)$/.test(n.t)) return { __t: n.t, f: { message: args[0] ?? null }, T: null };   // 자바 표준 예외
     throw new Unsupported('new ' + n.t);
   }
   evCall(n, sc) {
@@ -243,6 +250,7 @@ class Interp {
     if (this.hooks.special) { const r = this.hooks.special(n, sc, this); if (r !== undefined) return r.v; }
     if (n.obj === null) {
       const args = n.args.map(a => this.ev(a, sc));
+      if (n.n === 'this' && sc.self && sc.T) { this.construct(sc.T, sc.self, args); return undefined; }   // 생성자 위임 this(...)
       const own = sc.T && sc.T.methods.find(m => m.name === n.n && m.params.length === args.length);
       if (own) return this.invoke(own, sc.self, args, sc.T);
       return this.callStatic(null, n.n, args, n);
@@ -264,6 +272,7 @@ class Interp {
     if (cls === 'MediaType') return 'application/json';
     const T = cls && this.typeOf(cls);
     if (T) { const m = T.methods.find(x => x.name === name && x.mods.includes('static') && x.params.length === args.length); if (m) return this.invoke(m, null, args, T); }
+    if (T && name === 'builder' && !args.length && (hasA(T, 'Builder') || T.ctors.some(c => hasA(c, 'Builder')))) return { __builder: T, vals: {} };   // Lombok @Builder
     throw new Unsupported(`${cls ? cls + '.' : ''}${name}() 호출은 지원하지 않습니다`);
   }
   callMethod(t, name, args, node) {
@@ -283,25 +292,44 @@ class Interp {
       switch (name) {
         case 'map': return t.v === null ? t : optOf(this.callLambda(args[0], [t.v]));
         case 'orElse': return t.v === null ? args[0] : t.v;
-        case 'orElseThrow': if (t.v !== null) return t.v; if (args[0]) { const e = this.callLambda(args[0], []); throw new JavaThrow(e && e.__t || 'Exception', ''); } throw new JavaThrow('NoSuchElementException', 'No value present');
+        case 'orElseThrow': if (t.v !== null) return t.v; if (args[0]) { const e = this.callLambda(args[0], []); throw new JavaThrow(e && e.__t || 'Exception', (e && e.f && e.f.message) || ''); } throw new JavaThrow('NoSuchElementException', 'No value present');
         case 'isPresent': return t.v !== null; case 'isEmpty': return t.v === null; case 'get': if (t.v === null) throw new JavaThrow('NoSuchElementException', 'No value present'); return t.v;
         case 'ifPresent': if (t.v !== null) this.callLambda(args[0], [t.v]); return undefined;
         default: break;
       }
     }
+    if (t && t.__builder) {
+      if (name !== 'build') { t.vals[name] = args[0]; return t; }
+      const T = t.__builder, bc = T.ctors.find(c => hasA(c, 'Builder'));
+      if (bc) return this.instantiate(T, bc.params.map(p => t.vals[p.name] ?? null));
+      const inst = this.instantiate(T, []); Object.keys(t.vals).forEach(k => { if (k in inst.f) inst.f[k] = t.vals[k]; }); return inst;
+    }
     if (isInst(t)) {
+      if (name === 'getMessage' && 'message' in t.f && !args.length) return t.f.message;
       const T = t.T || this.typeOf(t.__t);
       if (T) {
         if (T.kind === 'record' && T.comps.some(c => c.name === name) && !args.length) return t.f[name];
         const m = T.methods.find(x => x.name === name && x.params.length === args.length);
         if (m) return this.invoke(m, t, args, T);
         if (name === 'equals') return deepEq(t, args[0]); if (name === 'toString') return show(t);
+        const acc = /^(get|is|set)([A-Z]\w*)$/.exec(name), fld = acc && T.fields.find(f => f.name === acc[2][0].toLowerCase() + acc[2].slice(1));
+        if (fld && acc[1] !== 'set' && !args.length && (hasA(T, 'Getter') || hasA(T, 'Data') || hasA(fld, 'Getter'))) return t.f[fld.name];   // Lombok @Getter
+        if (fld && acc[1] === 'set' && args.length === 1 && (hasA(T, 'Setter') || hasA(T, 'Data') || hasA(fld, 'Setter'))) { t.f[fld.name] = args[0]; return undefined; }
       }
     }
     throw new Unsupported(`${t && t.__t ? t.__t : typeof t}.${name}() 호출은 지원하지 않습니다`);
   }
 }
 const show1 = v => (typeof v === 'string' ? v : show(v));
+const hasA = (x, n) => ((x && x.anns) || []).some(a => a.name === n);
+/* Lombok 생성자: @AllArgsConstructor 는 모든 필드, @RequiredArgsConstructor 는 final 필드 순서 */
+function lombokCtorFields(T, n) {
+  const fs = T.fields.filter(f => !f.mods.includes('static'));
+  if (hasA(T, 'AllArgsConstructor') && fs.length === n) return fs;
+  const req = fs.filter(f => f.mods.includes('final') && !f.hasInit);
+  if ((hasA(T, 'RequiredArgsConstructor') || hasA(T, 'Data')) && req.length === n) return req;
+  return null;
+}
 
 Object.assign(IDE, { mini: { Interp, parseStatements, Unsupported, AssertionFail, JavaThrow, ReturnSignal, show, deepEq, toPlain, optOf, isInst, isOpt, isMock } });
 })();

@@ -88,3 +88,4 @@
 .donetoggle .caret { display: inline-grid; } .donetoggle .caret .ic { width: 12px; height: 12px; transition: transform .15s; } .donetoggle:not(.open) .caret .ic { transform: rotate(-90deg); }
 
 .donetoggle { justify-content: space-between; } .donetoggle .tgl { color: #8fb69a; font-size: 11.5px; }
+.lockedhint { color: var(--dim); font-size: 11.5px; list-style: none; margin: 2px 0 0; }

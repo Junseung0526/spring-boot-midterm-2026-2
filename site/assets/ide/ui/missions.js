@@ -23,7 +23,14 @@ function create(host, modal, toast) {
         ${vr ? `<div class="vres ${vr.ok ? 'ok' : 'bad'}"><b>${vr.ok ? '✔ 정답입니다!' : '✖ 아직이에요'}</b> ${vr.ok ? '' : esc(vr.msg)}${vr.detail ? `<small>${esc(vr.detail)}</small>` : ''}</div>` : ''}
         <div class="vbar"><button class="verify" data-verify="${m.id}" ${verifyingId ? 'disabled' : ''}>${verifyingId === m.id ? '채점 중…' : done ? '다시 확인' : '정답 확인'}</button><span class="vhint">앱을 새로 실행하고 필요한 ${m.auto && m.auto.tests ? '테스트를' : '요청을'} 자동으로 실행해요</span></div>
         <div class="ma"><button data-goto="${m.id}" class="goto">위치로 이동</button><button data-hint="${m.id}">힌트${openHints.has(m.id) ? ' 닫기' : ''}</button><button data-open="${m.study}">개념</button></div>
-        ${openHints.has(m.id) ? `<div class="mh2">${diagOf(m).length ? `<div class="dg">현재 코드 진단</div><ul>${diagOf(m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="dg">일반 힌트</div><ol>${m.hints.map(h => `<li>${esc(h)}</li>`).join('')}</ol>${m.snippet ? `<div class="dg">정답 예시</div><pre class="snip">${highlight.lines(m.snippet, 'x.java').join('\n')}</pre>` : ''}</div>` : ''}</div>`;
+        ${openHints.has(m.id) ? hintBox(m, done) : ''}</div>`;
+  };
+  /* 힌트 사다리: 일반 힌트는 1개 + 정답 확인 실패 1번마다 1개씩, 정답 예시는 2번 실패(또는 완료) 후에 열린다 */
+  const SNIP_AFTER = 2;
+  const hintBox = (m, done) => {
+    const f = state.fails[m.id] || 0, n = done ? m.hints.length : Math.min(m.hints.length, 1 + f), snipOpen = done || f >= SNIP_AFTER;
+    const more = n < m.hints.length ? `<li class="lockedhint">정답 확인을 한 번 더 틀리면 다음 힌트가 열려요</li>` : '';
+    return `<div class="mh2">${diagOf(m).length ? `<div class="dg">현재 코드 진단</div><ul>${diagOf(m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="dg">일반 힌트</div><ol>${m.hints.slice(0, n).map(h => `<li>${esc(h)}</li>`).join('')}${more}</ol>${m.snippet ? `<div class="dg">정답 예시</div>${snipOpen ? `<pre class="snip">${highlight.lines(m.snippet, 'x.java').join('\n')}</pre>` : `<p class="lockedhint">정답 확인을 ${SNIP_AFTER - f}번 더 틀리면 열려요 (지금 ${f}번)</p>`}` : ''}</div>`;
   };
   const lockedCard = m => `<div class="mi locked" data-mission="${m.id}"><div class="mt"><span class="ck"><svg class="ic"><use href="#i-lock"/></svg></span><span class="sk w60"></span></div><span class="sk w95"></span><span class="sk w70"></span><div class="ma"><span class="lockmsg">앞 미션을 완료하면 열려요</span><button data-peek="${m.id}">미리 열기</button></div></div>`;
 
@@ -46,12 +53,12 @@ function create(host, modal, toast) {
     host.innerHTML = `<div class="mh"><span>진행도</span><span>${n} / ${total} 완료</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` + doneBlock +
       (rest.length ? restHtml : '<div class="alldone">모든 미션을 완료했어요!<small>위의 "완료한 미션"을 펼쳐 다시 확인하거나, 모의고사에 도전해 보세요.</small></div>') +
       `<div class="mfoot"><button data-sol>정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
-       <p class="mnote">TIP · 카드의 <b>정답 확인</b> 을 누르면 앱을 새로 실행하고 필요한 요청·테스트를 자동으로 보내 채점해요. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 IoC/DI → 조회 → 생성 → 수정 → 삭제 → 트랜잭션 → AOP → 테스트 순으로 스프링이 익숙해집니다.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
+       <p class="mnote">TIP · 카드의 <b>정답 확인</b> 을 누르면 앱을 새로 실행하고 필요한 요청·테스트를 자동으로 보내 채점해요. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 엔티티 → 생성 → 조회 → 삭제 → 수정(변경 감지) → 트랜잭션 → 테스트 직접 작성 → 5장 실습 → AOP 순으로 블로그 API 를 처음부터 완성합니다.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
     sc.scrollTop = top;
   };
   function check() {
     let changed = false;
-    for (const m of IDE.MISSIONS) if (!state.done.has(m.id) && m.check(state.session)) {
+    for (const m of IDE.MISSIONS) if (!state.done.has(m.id) && m.check(state.session, state.files)) {
       state.done.add(m.id); changed = true;
       const nxt = IDE.MISSIONS.find(x => !state.done.has(x.id) && x !== m);
       toast(`미션 완료: ${m.title}${nxt ? ` — 다음: ${nxt.title}` : ' — 모두 완료! 모의고사에 도전해 보세요'}`);
@@ -69,7 +76,7 @@ function create(host, modal, toast) {
     const h = e.target.closest('[data-hint]');
     if (h) { const id = h.dataset.hint; openHints.has(id) ? openHints.delete(id) : openHints.add(id); draw(); }
     const o = e.target.closest('[data-open]'); if (o) store.openFile(o.dataset.open);
-    if (e.target.closest('[data-sol]')) openSolutions();
+    if (e.target.closest('[data-sol]')) { if (IDE.MISSIONS.every(m => state.done.has(m.id)) || confirm('모든 미션의 최종 정답 코드가 한꺼번에 보입니다. 직접 풀기 전에 보면 실습 효과가 크게 줄어요. 그래도 볼까요?')) openSolutions(); }
     if (e.target.closest('[data-reset]') && confirm('작성한 코드와 미션 진행 상태를 모두 초기화할까요?')) store.resetProject();
   });
 

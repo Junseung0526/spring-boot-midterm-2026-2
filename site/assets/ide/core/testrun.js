@@ -7,6 +7,7 @@ const IDE = (globalThis.IDE ??= {});
 const { hasAnn, getAnn, simple, decap, fqn } = IDE;
 const { Interp, Unsupported, AssertionFail, JavaThrow, show, deepEq, toPlain, optOf, isInst, isOpt, isMock } = IDE.mini;
 
+const excSub = (a, b) => a === b || b === 'Exception' || b === 'Throwable' || (b === 'RuntimeException' && /^(IllegalArgument|IllegalState|NullPointer|NoSuchElement|UnsupportedOperation)Exception$/.test(a));
 const isTestPath = p => /(^|\/)src\/test\/java\//.test(p);
 const ANY = { __any: true };
 const RET_DEFAULT = (retType) => {
@@ -37,13 +38,15 @@ function mockCall(mock, name, args) {
 }
 
 /* ── 인메모리 Repository (@DataJpaTest) ── */
-function newRepo(model, entityName) {
-  return { __repo: true, rows: [], seq: 1, entity: entityName, T: model.types.get(entityName) };
+function newRepo(model, entityName, mutant) {
+  return { __repo: true, rows: [], seq: 1, entity: entityName, T: model.types.get(entityName), mutant };
 }
 function repoCall(r, name, args) {
   const idOf = e => e && e.f ? e.f.id : e;
   switch (name) {
-    case 'save': { const e = args[0]; if (e.f.id === null || e.f.id === undefined) e.f.id = r.seq++; if (!r.rows.includes(e)) r.rows = r.rows.filter(x => x.f.id !== e.f.id).concat(e); return e; }
+    case 'save': { const e = args[0]; if (!isInst(e)) throw new JavaThrow('IllegalArgumentException', 'Entity must not be null');
+      if (r.mutant) { if (e.f.id == null) e.f.id = r.seq++; return e; }   // 변이: 저장한 척만 한다 → 의미 있는 테스트라면 실패해야 함
+      if (e.f.id === null || e.f.id === undefined) e.f.id = r.seq++; if (!r.rows.includes(e)) r.rows = r.rows.filter(x => x.f.id !== e.f.id).concat(e); return e; }
     case 'saveAll': return args[0].map(e => repoCall(r, 'save', [e]));
     case 'findById': return optOf(r.rows.find(x => x.f.id === args[0]) || null);
     case 'findAll': return r.rows.slice();
@@ -122,7 +125,8 @@ function makeHooks(env) {
       }
       return undefined;
     },
-    builtin(cls, name, args) {
+    builtin(cls, name, args, node, I) {
+      if (cls === 'MockMvcBuilders') return { v: { __mvcb: true } };   // MockMvcBuilders.webAppContextSetup(context).build()
       if (cls !== null && cls !== undefined) return undefined;
       switch (name) {
         case 'any': case 'anyLong': case 'anyString': case 'anyInt': case 'isA': return { v: ANY };
@@ -130,15 +134,33 @@ function makeHooks(env) {
         case 'times': return { v: { __times: args[0] } };
         case 'never': return { v: { __times: 0 } };
         case 'assertThat': return { v: { __assert: args[0] } };
+        case 'assertThatThrownBy': case 'assertThrows': {
+          const fn = name === 'assertThrows' ? args[1] : args[0];
+          let thrown = null;
+          try { I.callLambda(fn, []); } catch (e) { if (e instanceof JavaThrow) thrown = { name: e.javaName, msg: e.javaMsg || '', cause: e.cause }; else throw e; }
+          if (name === 'assertThatThrownBy') return { v: { __thrown: thrown } };
+          const want = args[0] && args[0].outer;
+          if (!thrown) throw new AssertionFail(`Expected ${want} to be thrown, but nothing was thrown.`);
+          if (want && !IDE.isSub(model, thrown.name, want) && !excSub(thrown.name, want)) throw new AssertionFail(`Unexpected exception type thrown, expected: <${want}> but was: <${thrown.name}>`);
+          return { v: { __t: thrown.name, f: { message: thrown.msg }, T: null } };
+        }
         case 'assertEquals': if (!deepEq(args[1], args[0])) throw new AssertionFail(`expected: <${show(args[0])}> but was: <${show(args[1])}>`); return { v: undefined };
         case 'assertTrue': if (args[0] !== true) throw new AssertionFail('expected: <true> but was: <false>'); return { v: undefined };
         case 'assertFalse': if (args[0] !== false) throw new AssertionFail('expected: <false> but was: <true>'); return { v: undefined };
         case 'assertNull': if (args[0] != null) throw new AssertionFail(`expected: <null> but was: <${show(args[0])}>`); return { v: undefined };
         case 'assertNotNull': if (args[0] == null) throw new AssertionFail('expected: not <null>'); return { v: undefined };
         case 'fail': throw new AssertionFail(args[0] || 'fail()');
-        case 'get': case 'post': case 'put': case 'delete': case 'patch': return { v: { __req: { method: name.toUpperCase(), url: args[0], headers: {}, body: '' } } };
+        case 'get': case 'post': case 'put': case 'delete': case 'patch': { let k = 1; const url = String(args[0]).replace(/\{\w+\}/g, () => String(args[k++])); return { v: { __req: { method: name.toUpperCase(), url, headers: {}, body: '' } } }; }
         case 'status': return { v: { __m: 'status' } };
-        case 'jsonPath': return { v: { __m: 'json', path: args[0] } };
+        case 'jsonPath': {
+          if (args.length < 2) return { v: { __m: 'json', path: args[0] } };
+          const p = args[0], hm = args[1];
+          if (!hm || !hm.__hm) throw new Unsupported('jsonPath(path, ...) 의 두 번째 인자는 hasSize/is/equalTo 만 지원');
+          return { v: { __check: res => { const a = jsonPathGet(parseBody(res), p); if (!hm.test(a)) throw new AssertionFail(`JSON path "${p}"\nExpected: ${hm.desc}\n     but: was ${show(a)}`); } } };
+        }
+        // Hamcrest 매처 (jsonPath 두 번째 인자용)
+        case 'hasSize': return { v: { __hm: true, desc: `a collection with size <${args[0]}>`, test: a => Array.isArray(a) && a.length === args[0] } };
+        case 'is': case 'equalTo': { const e = args[0]; return { v: e && e.__hm ? e : { __hm: true, desc: `<${show(e)}>`, test: a => deepEq(a, e) || String(a) === String(e) } }; }
         case 'content': return { v: { __m: 'content' } };
         case 'print': return { v: { __noop: true } };
         default: return undefined;
@@ -158,7 +180,22 @@ function makeHooks(env) {
         if (times > 0 && hit.length !== times) throw new AssertionFail(hit.length ? `Wanted ${times} time(s) but was ${hit.length}: ${mock.type}.${name}(...)` : `Wanted but not invoked: ${decap(mock.type)}.${name}(${args.map(show).join(', ')})`);
         return { v: undefined };
       }
+      if (t && Object.prototype.hasOwnProperty.call(t, '__thrown')) {
+        const th = t.__thrown;
+        if (!th) throw new AssertionFail('\nExpecting code to raise a throwable.');
+        if (name === 'isInstanceOf') { const want = args[0] && args[0].outer; if (want && !IDE.isSub(model, th.name, want) && !excSub(th.name, want)) throw new AssertionFail(`\nExpecting actual throwable to be an instance of:\n  ${want}\nbut was:\n  ${th.name}: ${th.msg}`); return { v: t }; }
+        if (name === 'hasMessage') { if (th.msg !== args[0]) throw new AssertionFail(`\nExpecting message to be:\n  ${show(args[0])}\nbut was:\n  ${show(th.msg)}`); return { v: t }; }
+        if (name === 'hasCauseInstanceOf' || name === 'hasRootCauseInstanceOf') { const want = args[0] && args[0].outer, c = th.cause; if (!c || (want && !IDE.isSub(model, c.name, want) && !excSub(c.name, want))) throw new AssertionFail(`\nExpecting a throwable with cause being an instance of:\n  ${want}\nbut ${c ? 'was:\n  ' + c.name : 'current throwable has no cause.'}`); return { v: t }; }
+        if (name === 'hasMessageContaining') { if (!String(th.msg).includes(args[0])) throw new AssertionFail(`\nExpecting throwable message:\n  ${show(th.msg)}\nto contain:\n  ${show(args[0])}`); return { v: t }; }
+        throw new Unsupported(`assertThatThrownBy(...).${name}()`);
+      }
       if (isMock(t)) return { v: mockCall(t, name, args) };
+      if (t && t.__dbrepo) return { v: IDE.repoOp(t.tb, name, args) };
+      if (t && t.__om) { if (name === 'writeValueAsString') return { v: JSON.stringify(IDE.serialize(model, args[0])) }; throw new Unsupported(`ObjectMapper.${name}()`); }
+      if (t && t.__jdbc) return { v: undefined };   // jdbcTemplate.execute("ALTER TABLE … RESTART …") — 테스트마다 DB 를 새로 만들므로 할 일 없음
+      if (t && t.__mvcb) return { v: name === 'build' ? { __mvc: true } : t };
+      if (t && t.__assert !== undefined && name === 'extracting') return { v: { __assert: (t.__assert || []).map(x => I.callLambda(args[0], [x])) } };
+      if (t && t.__assert !== undefined && name === 'containsExactly') { if (!deepEq(t.__assert, args)) throw new AssertionFail(`\nExpecting actual:\n  ${show(t.__assert)}\nto contain exactly (and in same order):\n  ${show(args)}`); return { v: t }; }
       if (t && t.__repo) return { v: repoCall(t, name, args) };
       if (t && t.__assert !== undefined && Object.prototype.hasOwnProperty.call(t, '__assert')) { assertion(t.__assert, name, args); return { v: t }; }
       if (t && t.__req) {
@@ -214,7 +251,8 @@ function testTargets(path, text) { // 에디터 거터의 ▶ 위치: 클래스 
 }
 
 /* ── 실행 ── */
-function runTests(files, only) {
+/* opts.mutant: 'repo' | 'delete-status' | 'delete-call' — 일부러 망가뜨린 환경에서 학생이 쓴 테스트가 실패하는지(=제대로 검증하는지) 확인 */
+function runTests(files, only, opts = {}) {
   const t0 = Date.now();
   const model = IDE.buildModel(files);
   const probs = IDE.javaProblems(model);
@@ -237,7 +275,10 @@ function runTests(files, only) {
     if (kind === 'boot') {
       const r = IDE.boot({ ...mainFiles });
       if (!r.ok) { failAll('java.lang.IllegalStateException: Failed to load ApplicationContext\n' + (r.failure ? 'Caused by: ' + (r.failure.ex || 'BeanCreationException') + ': ' + (r.failure.desc || r.failure.cause || '') : (r.problems || []).map(p => p.msg).join('\n'))); continue; }
-      bootCtx = r.ctx;
+      bootCtx = r.ctx; bootCtx.mutant = opts.mutant;
+      // 테스트 메서드마다 기동 직후(data.sql 까지)의 DB 로 되돌린다 — shortcut: 실제로는 컨텍스트·DB 를 공유하므로 정리(@AfterEach)와 실행 순서가 중요하다
+      const snap = Object.values(bootCtx.db.tables).map(tb => [tb, tb.rows.map(r => ({ ...r })), tb.seq]);
+      bootCtx.reset = () => snap.forEach(([tb, rows, seq]) => { tb.rows = rows.map(r => ({ ...r })); tb.seq = seq; });
     }
     if (kind === 'web') {
       const ct = (/(\w+)\.class/.exec((getAnn(T, 'WebMvcTest') || {}).args || '') || [])[1];
@@ -258,8 +299,7 @@ function runTests(files, only) {
       if (bad) { failAll(`java.lang.IllegalStateException: Failed to load ApplicationContext\nCaused by: org.springframework.beans.factory.${bad.ex}: ${bad.desc}\n\n@WebMvcTest 는 웹 계층만 로드하므로 Service 는 @MockitoBean 으로 가짜 빈을 등록해야 합니다.`); continue; }
       const web = IDE.buildWeb(model, rb);
       if (ctrl) web.mappings = web.mappings.filter(m => m.bean.t === ctrl);
-      const E = rb.entities && rb.entities[0] || null;
-      sliceCtx = { model, rb, web, cfg: { ...cfg, showSql: false }, db: { rows: [], seq: 1, entity: E }, port: cfg.port, first: false, files,
+      sliceCtx = { model, rb, web, cfg: { ...cfg, showSql: false }, db: IDE.newDb(rb.entities || []), port: cfg.port, first: false, files, mutant: opts.mutant,
         mock: { has: t => mocks.has(t), invoke: (t, name, args) => mockCall(mocks.get(t), name, args) } };
     }
     if (kind === 'jpa') {
@@ -278,7 +318,11 @@ function runTests(files, only) {
           else if (hasAnn(f, 'InjectMocks')) inst.push(f);
           else if (hasAnn(f, 'Autowired')) {
             if (ty === 'MockMvc') self.f[f.name] = { __mvc: true };
-            else if (kind === 'jpa' && model.types.get(ty) && model.types.get(ty).kind === 'interface') { const ent = model.types.get(ty).typeArgs[0]; self.f[f.name] = newRepo(model, ent); }
+            else if (kind === 'boot' && ty === 'ObjectMapper') self.f[f.name] = { __om: true };
+            else if (kind === 'boot' && ty === 'JdbcTemplate') self.f[f.name] = { __jdbc: true };
+            else if (kind === 'boot' && ty === 'WebApplicationContext') self.f[f.name] = { __wac: true };
+            else if (kind === 'boot' && model.types.get(ty) && model.types.get(ty).kind === 'interface' && IDE.REPO_BASES.test(model.types.get(ty).header)) self.f[f.name] = { __dbrepo: true, tb: bootCtx.db.byEntity[model.types.get(ty).typeArgs[0]] };
+            else if (kind === 'jpa' && model.types.get(ty) && model.types.get(ty).kind === 'interface') { const ent = model.types.get(ty).typeArgs[0]; self.f[f.name] = newRepo(model, ent, opts.mutant === 'repo'); }
             else throw new Unsupported(`@Autowired ${ty} 는 이 시뮬레이터에서 지원하지 않습니다`);
           }
         }
@@ -291,12 +335,24 @@ function runTests(files, only) {
         }
         env.mvcCall = rq => {
           const ctx = sliceCtx || bootCtx; if (!ctx) throw new Unsupported('MockMvc 를 만들 수 없는 테스트 종류입니다');
-          return IDE.handle(ctx, { method: rq.method, url: 'http://localhost:' + ctx.port + rq.url, headers: rq.headers, body: rq.body });
+          const res = IDE.handle(ctx, { method: rq.method, url: 'http://localhost:' + ctx.port + rq.url, headers: rq.headers, body: rq.body });
+          // 처리되지 않은 예외는 MockMvc 가 응답으로 바꾸지 않고 ServletException 으로 던진다
+          if (res.unhandled) throw new JavaThrow('ServletException', `Request processing failed: java.lang.${res.unhandled.name}: ${res.unhandled.msg}`, res.unhandled);
+          return res;
         };
         if (kind === 'boot' && !self.f.mockMvc && T.fields.some(f => simple(f.type) === 'MockMvc') && !hasAnn(T, 'AutoConfigureMockMvc')) throw new JavaThrow('NoSuchBeanDefinitionException', "No qualifying bean of type 'MockMvc' — @AutoConfigureMockMvc 가 필요합니다");
         const I = new Interp(model, makeHooks(env));
+        if (bootCtx) {
+          bootCtx.reset();
+          for (const a of [getAnn(T, 'Sql'), getAnn(m, 'Sql')].filter(Boolean)) {   // @Sql("/test-db.sql")
+            const f = (/"\/?([^"]+)"/.exec(a.args) || [])[1], text = f && (files['src/test/resources/' + f] ?? files['src/main/resources/' + f]);
+            if (text == null) throw new JavaThrow('FileNotFoundException', `class path resource [${f}] cannot be opened because it does not exist`);
+            const r2 = IDE.runSql(bootCtx.db, text); if (r2.missing) throw new JavaThrow('ScriptStatementFailedException', `Table "${r2.missing.toUpperCase()}" not found`);
+          }
+        }
         for (const b of T.methods.filter(x => hasAnn(x, 'BeforeEach'))) I.run(b.body || '', { vars: new Map(), self, T });
         I.run(m.body || '', { vars: new Map(), self, T });
+        for (const b of T.methods.filter(x => hasAnn(x, 'AfterEach'))) I.run(b.body || '', { vars: new Map(), self, T });
         report(m, 'pass');
       } catch (e) {
         if (e instanceof AssertionFail) report(m, 'fail', 'java.lang.AssertionError: ' + e.message);

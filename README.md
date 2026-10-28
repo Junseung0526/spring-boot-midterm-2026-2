@@ -8,19 +8,19 @@ IntelliJ 처럼 코드를 직접 작성 · 실행 · 테스트하면서 **MVC �
 |---|---|
 | **개념 애니메이션** | 왼쪽 Concepts — 코드가 타이핑되고 SVG 가 움직이며 자동 재생. 장면이 끝나면 이해 확인 퀴즈 · 관련 실습 · 다음 개념으로 이어짐 |
 | **IntelliJ New UI** | 자동완성 · 자동 import · 빨간 밑줄 · Run 콘솔 · HTTP Client(`requests.http`) · 테스트 실행(✔/✖ 거터) |
-| **12개 미션 (8단계)** | 컨트롤러를 빈 뼈대에서 시작해 **CRUD 를 한 걸음씩 직접 작성**: IoC/DI → 조회(목록·단건) → 생성(만들기·201·400) → 수정 → 삭제 → `@Transactional` → AOP → 테스트. 다음 미션은 앞 미션을 끝내야 열리고("미리 열기"로 건너뛰기 가능), 미션마다 채점 기준·정답 예시·**내 현재 코드를 읽는 힌트**가 있음. 행동으로 채점하므로 순서를 바꿔도, 미션 밖의 코드를 써도 동작 |
+| **12개 미션 (6단계, 강의 1~6장)** | 6장 블로그 API(`/api/articles`)를 **빈 클래스**에서 시작해 완성: 엔티티 · 리포지토리(기본 생성자 함정) → 추가(201) · 목록(응답 DTO) · 단건(`orElseThrow` 예외) · 삭제 → 수정(**save() 없이 변경 감지**) → readOnly 트랜잭션 함정 → 삭제 · 수정 · `@DataJpaTest` 테스트 **직접 작성**(변이 검사로 약한 테스트 불합격) → **5장 실습 Book API**(`defer-datasource-initialization`) → 보너스 AOP. 제공 테스트(`@SpringBootTest + MockMvc + @Sql`)와 실제 실행한 HTTP 응답으로 채점하며 record DTO · 204 삭제 같은 다른 정답도 인정. 진단은 원인만 말하고, 힌트는 틀릴 때마다 하나씩, 정답 예시는 2번 틀린 뒤 열림. 자세한 내용은 [실습 가이드](PRACTICE_GUIDE.md) |
 | **처음부터 직접 작성** | Project 의 `＋ New` 로 Controller / Service / Repository / Entity / DTO / Config / Test 파일 생성 |
-| **테스트 코드** | `@SpringBootTest` · `@WebMvcTest`(+`@MockitoBean`) · `@DataJpaTest` · Mockito 단위 테스트 14개가 프로젝트에 포함 |
+| **테스트 코드** | `@SpringBootTest` · `@WebMvcTest`(+`@MockitoBean`) · Mockito 단위 테스트 10개가 인수 조건으로 포함, `@DataJpaTest` 와 DELETE 테스트는 학생이 작성 |
 | **Git(시뮬레이션)** | 변경 파일 색상, Commit 도구창(Ctrl+K) · Diff · 로그 · Push |
 | **암기 · 시험** | 상단 버튼: 어노테이션 카드/객관식/빈칸/목록, 모의고사(오답노트) |
 | **반응형** | 1024 ~ 1920px 노트북 화면에 맞춰 도구창 폭·콘솔 높이가 조절됨 |
 
-> 시뮬레이터의 한계: HTTP 요청은 "표준 CRUD 의미"로 처리하므로 서비스 본문의 **임의 로직은 실행하지 않습니다.** 반면 테스트는 `core/minijava.js` 인터프리터가 서비스·엔티티 코드까지 해석합니다(지원하지 않는 구문은 "실행불가"로 표시).
+> 실행 방식: HTTP 요청은 `core/minijava.js` 인터프리터로 **컨트롤러 → 서비스 → 리포지토리 코드를 실제로 실행**하고, 리포지토리는 엔티티별 인메모리 테이블을 씁니다. 조회한 엔티티는 복사본이라 **쓰기 트랜잭션이 커밋될 때만 변경 감지로 반영**됩니다(readOnly·트랜잭션 없음이면 반영 안 됨). 인터프리터가 해석하지 못하는 구문(for · try 등)을 만나면 콘솔에 알리고 "표준 CRUD 의미"로 대신 처리합니다. 테스트도 같은 인터프리터로 해석합니다(지원하지 않는 구문은 "실행불가").
 
 ## 로컬 실행
 ```bash
 cd site && python3 -m http.server 8000   # http://localhost:8000
-node tests/check.js                       # 데이터 · SVG · 커리큘럼 · 테스트 러너 점검 (79개)
+node tests/check.js                       # 데이터 · SVG · 커리큘럼 · 테스트 러너 점검 (115개)
 ```
 
 ## GitHub Pages 배포

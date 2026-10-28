@@ -26,7 +26,8 @@ function resolveBeans(model) {
   for (const e of entities) {
     if (!e.fields.some(f => hasAnn(f, 'Id') || hasAnn(f, 'EmbeddedId'))) jpa.push({ path: e.path, line: e.line, kind: 'jpa', tip: `Entity '${e.name}' has no @Id field`,
       ex: `jakarta.persistence.PersistenceException: [PersistenceUnit: default] Unable to build Hibernate SessionFactory`, cause: `org.hibernate.AnnotationException: No identifier specified for entity: ${fqn(e)}` });
-    if (e.ctors.length && !e.ctors.some(c => !c.params.length && !c.mods.includes('private'))) jpa.push({ path: e.path, line: e.line, kind: 'jpa', tip: 'No default (no-arg) constructor',
+    const lombokNoArgs = (getAnn(e, 'NoArgsConstructor') && !/PRIVATE/.test(getAnn(e, 'NoArgsConstructor').args)) || hasAnn(e, 'Data');
+    if (e.ctors.length && !lombokNoArgs && !e.ctors.some(c => !c.params.length && !c.mods.includes('private'))) jpa.push({ path: e.path, line: e.line, kind: 'jpa', tip: 'No default (no-arg) constructor',
       ex: `jakarta.persistence.PersistenceException: [PersistenceUnit: default] Unable to build Hibernate SessionFactory`, cause: `org.hibernate.InstantiationException: No default constructor for entity: ${fqn(e)}` });
   }
   for (const b of beans.filter(x => x.repo)) {
@@ -93,10 +94,11 @@ function resolveBeans(model) {
 }
 
 function readConfig(files) {
-  const yml = files['src/main/resources/application.yml'] || '';
+  const yml = files['src/main/resources/application.yml'] || files['src/main/resources/application.yaml'] || '';
   const port = +((/^\s*port:\s*(\d+)/m.exec(yml) || [])[1] || 8080);
   const showSql = !/show-sql:\s*false/.test(yml);
-  return { port, showSql };
+  const defer = /defer-datasource-initialization:\s*true/.test(yml);   // data.sql 을 Hibernate 테이블 생성 뒤에 실행
+  return { port, showSql, defer };
 }
 
 Object.assign(IDE, { resolveBeans, readConfig });

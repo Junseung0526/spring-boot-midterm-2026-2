@@ -60,7 +60,7 @@ function create(con) {
     const ms = Math.max(3, Math.round(performance.now() - t0) + 4 + Math.floor(Math.random() * 12));
     con.showResponse(req, r, ms);
     if (r.status) {
-      state.session.responses.push({ method: req.method, path: new URL(req.url).pathname, status: r.status, body: r.body });
+      state.session.responses.push({ method: req.method, path: new URL(req.url).pathname, status: r.status, body: r.body, reqBody: req.body, exception: r.exception });
       if (r.aspectHit) state.session.aspectHit = true;
       if (r.txHit) state.session.txHit = true;
     }
@@ -97,12 +97,17 @@ function create(con) {
           const r = IDE.handle(state.server.ctx, { method: q.method, url: 'http://localhost:' + state.server.ctx.port + q.path, headers: q.body ? { 'Content-Type': 'application/json' } : {}, body: q.body });
           r.logs.forEach(it => con.item(it));
           con.line(`   ${q.method} ${q.path} → ${r.status}${r.status && IDE.REASON[r.status] ? ' ' + IDE.REASON[r.status] : ''}`, 'dim');
-          fresh.responses.push({ method: q.method, path: q.path, status: r.status, body: r.body });
+          fresh.responses.push({ method: q.method, path: q.path, status: r.status, body: r.body, reqBody: q.body, exception: r.exception });
           if (r.aspectHit) fresh.aspectHit = true; if (r.txHit) fresh.txHit = true;
         }
       }
       if (m.auto.tests) { fresh.tests = await runTests(); }
-      const ok = !!m.check(fresh);
+      if (m.auto.mutants && fresh.tests && !fresh.tests.build) {
+        fresh.mutants = {};
+        for (const mu of m.auto.mutants) fresh.mutants[mu] = IDE.runTests({ ...state.files }, null, { mutant: mu });
+        con.line(`   변이 검사: 일부러 망가뜨린 코드 ${m.auto.mutants.length}가지로 내 테스트를 다시 실행했어요`, 'dim');
+      }
+      const ok = !!m.check(fresh, state.files);
       const detail = fresh.responses.map(r => `${r.method} ${r.path} → ${r.status}`).join(' · ') || (fresh.tests && !fresh.tests.build ? `테스트 ${fresh.tests.summary.pass}/${fresh.tests.results.length} 통과` : '');
       if (ok) {
         state.verify[m.id] = { ok: true, msg: '정답입니다!', detail };
@@ -113,6 +118,7 @@ function create(con) {
         bus.emit('session');
       } else {
         const why = !fresh.started && m.auto.requests && m.auto.requests.length ? (state.server.running ? '' : '앱이 실행되지 않았어요 — 콘솔의 오류를 먼저 해결하세요.') : '';
+        state.fails[m.id] = (state.fails[m.id] || 0) + 1; IDE.store.save();
         const d = (m.diagnose ? m.diagnose({ files: state.files, session: fresh, server: { running: state.server.running, dirty: false }, problems: state.problems, tests: fresh.tests }) : []).filter(Boolean);
         state.verify[m.id] = { ok: false, msg: why || d[0] || '아직 조건을 만족하지 못했어요.', detail };
         con.line(`✖ 미션 ${n} 아직이에요 — ${state.verify[m.id].msg}`, 'err');

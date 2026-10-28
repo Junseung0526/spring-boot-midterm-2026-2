@@ -2,7 +2,7 @@
    1) 데이터 파일이 약속한 상수를 정확히 하나씩 정의하는지
    2) 모든 애니메이션 단계의 on[] id 가 해당 SVG 안에 실제로 존재하는지
    3) 개념별 이해 확인 퀴즈에 쓸 문제가 있는지
-   4) 실습 엔진: 시작 코드는 실패, 정답 코드는 기동 + 미션 6개 통과 */
+   4) 실습 엔진: 시작 코드는 미통과, 정답 코드는 기동 + 12개 미션 통과 + 함정(변경 감지·readOnly·defer·변이 검사) */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const root = path.join(__dirname, '..', 'site', 'assets');
 const ctx = vm.createContext({ console, globalThis: null, localStorage: undefined });
@@ -46,58 +46,99 @@ for (const c of IDE.concepts.LIST.filter(c => c.kind === 'scene')) {
   ok(!c.practice || fs.existsSync(path.join(__dirname, '..', 'site', 'x')) || true, `[${c.id}] 관련 실습 지정`);
 }
 
-/* 4) 실습 엔진 + 테스트 러너 + 10개 미션 커리큘럼 */
+/* 4) 실습 엔진 + 테스트 러너 + 12개 미션 커리큘럼 */
 globalThis.IDE = {};
 for (const f of ['core/constants', 'core/util', 'core/parser', 'core/model', 'core/compile', 'core/beans', 'core/web', 'core/boot', 'core/http', 'core/minijava', 'core/testrun', 'project/starter', 'project/solutions', 'project/missions']) require(path.join(root, 'ide', f + '.js'));
 const E = globalThis.IDE, J = E.JAVA_ROOT, TT = E.TEST_ROOT;
-const starter = E.boot({ ...E.STARTER });
-ok(!starter.ok && /could not be found/.test(starter.failure?.desc || ''), '시작 코드: NoSuchBean 으로 기동 실패');
-const t0 = E.runTests({ ...E.STARTER });
-ok(!t0.build && t0.summary.pass === 7 && t0.summary.fail === 7, `시작 코드의 테스트: 7 통과 / 7 실패 (실제 ${t0.summary && t0.summary.pass}/${t0.summary && t0.summary.fail})`);
+const SVC = J + 'service/BlogService.java', ART = J + 'domain/Article.java', CTT = TT + 'controller/BlogApiControllerTest.java', RT = TT + 'repository/BlogRepositoryTest.java';
+const YAML = 'src/main/resources/application.yaml';
 const sol = { ...E.STARTER, ...E.SOLUTIONS };
+const http = (ctx, m, u, b) => E.handle(ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b || '' });
+const js = r => { try { return JSON.parse(r.body); } catch { return null; } };
+const ADD = '{"title":"t","content":"c"}', PUT = '{"title":"바뀜","content":"x"}';
+const starter = E.boot({ ...E.STARTER });
+ok(starter.ok && http(starter.ctx, 'GET', '/api/articles').status === 404, '시작 코드: 빈 클래스뿐이라 기동은 되지만 API 는 404');
+const t0 = E.runTests({ ...E.STARTER });
+ok(t0.build, '시작 코드의 제공 테스트: 리포지토리 · DTO 가 비어 있어 컴파일 실패');
 const boot = E.boot(sol);
 ok(boot.ok, '정답 코드: 기동 성공');
 const t1 = E.runTests(sol);
-ok(!t1.build && t1.summary.pass === 14 && t1.summary.fail === 0 && t1.summary.skip === 0, `정답 코드의 테스트 14/14 통과 (실제 ${t1.summary && t1.summary.pass}/${t1.results.length})`);
-if (boot.ok) {
-  const st = { started: true, responses: [], aspectHit: false, txHit: false, tests: t1 };
-  const send = (m, u, b) => { const x = E.handle(boot.ctx, { method: m, url: 'http://localhost:8080' + u, headers: b ? { 'Content-Type': 'application/json' } : {}, body: b }); st.responses.push({ method: m, path: u, status: x.status, body: x.body }); if (x.aspectHit) st.aspectHit = true; if (x.txHit) st.txHit = true; return x; };
-  send('GET', '/api/posts'); send('GET', '/api/posts/1'); send('POST', '/api/posts', '{"title":"a","content":"b"}'); send('POST', '/api/posts', '{"title":"","content":"b"}');
-  send('PUT', '/api/posts/1', '{"title":"수정","content":"x"}'); send('GET', '/api/posts/1'); send('DELETE', '/api/posts/2');
-  ok(E.MISSIONS.length === 12, `미션 ${E.MISSIONS.length}개`);
-  E.MISSIONS.forEach(m => ok(m.check(st), `미션 ${m.id} (${m.title}) 통과`));
-  E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
+ok(!t1.build && t1.summary.fail === 0 && t1.summary.skip === 0 && t1.summary.pass >= 8, `정답 코드의 테스트 전부 통과 (실제 ${t1.summary && t1.summary.pass}/${t1.results.length})`);
+const withFiles = extra => { const b = E.boot({ ...sol, ...extra }); return b.ok ? b.ctx : null; };
+{
+  const c = boot.ctx;
+  ok(http(c, 'POST', '/api/articles', ADD).status === 201, 'HTTP: POST → 201 (ResponseEntity.status(CREATED))');
+  ok(js(http(c, 'GET', '/api/articles'))[0].id === 1, 'HTTP: 목록이 ArticleResponse(id 포함)로 직렬화');
+  const nf = http(c, 'GET', '/api/articles/999');
+  ok(nf.status === 500 && nf.exception === 'IllegalArgumentException: not found: 999', 'HTTP: 없는 글 → orElseThrow 의 예외와 메시지');
+  http(c, 'PUT', '/api/articles/1', PUT);
+  ok(js(http(c, 'GET', '/api/articles/1')).title === '바뀜', 'HTTP: @Transactional + 변경 감지로 수정 반영');
+  ok(http(c, 'DELETE', '/api/articles/1').status === 200 && js(http(c, 'GET', '/api/articles')).length === 0, 'HTTP: DELETE → 200, 목록에서 사라짐');
+  ok(js(http(c, 'GET', '/books')).length === 2, 'HTTP: 두 번째 엔티티(Book) 테이블도 동작');
+  const noTx = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional   //', '    //') });
+  if (noTx) { http(noTx, 'POST', '/api/articles', ADD); http(noTx, 'PUT', '/api/articles/1', PUT); ok(js(http(noTx, 'GET', '/api/articles/1')).title === 't', '함정: 트랜잭션 없이 엔티티만 바꾸면 DB 에 반영되지 않음'); } else ok(false, 'noTx 기동');
+  const ro = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)').replace('    @Transactional   //', '    //') });
+  if (ro) { http(ro, 'POST', '/api/articles', ADD); http(ro, 'PUT', '/api/articles/1', PUT); ok(js(http(ro, 'GET', '/api/articles/1')).title === 't', '함정: 클래스 readOnly 를 update 가 덮어쓰지 않으면 반영되지 않음'); } else ok(false, 'ro 기동');
+  const nodefer = E.boot({ ...sol, [YAML]: E.STARTER[YAML] });
+  ok(!nodefer.ok && /BOOK/.test(nodefer.failure?.desc || ''), '함정: defer-datasource-initialization 없이 book insert 를 풀면 Table "BOOK" not found');
+  const noCtor = E.boot({ ...sol, [ART]: E.SOLUTIONS[ART].replace('@NoArgsConstructor(access = AccessLevel.PROTECTED)\n', '') });
+  ok(!noCtor.ok && /default constructor/i.test(noCtor.failure?.desc || noCtor.failure?.cause || ''), '함정: 엔티티에 기본 생성자가 없으면 기동 실패');
 }
-/* 현재 코드 진단 힌트: 시작 코드에서 모든 미션이 구체적인 진단을 내고, 상태가 바뀌면 문구가 바뀐다 */
-const dctx = (files, extra = {}) => ({ files, session: { responses: [], tests: null }, server: { running: false, dirty: false }, problems: E.javaProblems(E.buildModel(files)), tests: null, ...extra });
-const d0 = dctx({ ...E.STARTER });
-ok(E.MISSIONS.every(m => (m.diagnose(d0)[0] || '').length > 10), '시작 코드: 모든 미션이 구체적인 진단 문구를 냄');
-const svcPath = J + 'service/PostService.java';
-const noImport = { ...E.STARTER, [svcPath]: E.STARTER[svcPath].replace('// TODO 미션 1: 이 클래스를 스프링 빈(비즈니스 계층)으로 등록하세요\npublic class', '@Service\npublic class') };
-ok(/import/.test(E.MISSIONS[0].diagnose(dctx(noImport))[0]), '진단: @Service 만 있고 import 가 없으면 import 를 안내');
-ok(/Run/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }))[0]), '진단: 코드가 맞고 앱이 꺼져 있으면 Run 안내');
-ok(/Rerun/.test(E.MISSIONS[0].diagnose(dctx({ ...E.STARTER, ...E.SOLUTIONS }, { server: { running: true, dirty: true } }))[0]), '진단: 앱 실행 중 코드가 바뀌면 Rerun 안내');
-const onlySvc = { ...E.STARTER, [svcPath]: E.SOLUTIONS[svcPath] };
-ok(E.MISSIONS[11].diagnose(dctx(onlySvc, { tests: E.runTests(onlySvc) })).some(x => /미션/.test(x)), '진단: 실패한 테스트를 해당 미션과 연결');
 
-/* ✅ 정답 확인(자동 채점) 시나리오: 정답 코드에서는 전부 통과, 시작 코드에서는 통과하지 않아야 한다 */
+/* 미션: 정답 코드는 전부 통과, 시작 코드는 하나도 통과하지 않음 */
 const autoRun = (files, m) => {
   const fresh = { started: false, responses: [], aspectHit: false, txHit: false, tests: null };
   if (m.auto.requests) { const b = E.boot(files); fresh.started = b.ok;
-    if (b.ok) for (const q of m.auto.requests) { const x = E.handle(b.ctx, { method: q.method, url: 'http://localhost:8080' + q.path, headers: q.body ? { 'Content-Type': 'application/json' } : {}, body: q.body }); fresh.responses.push({ method: q.method, path: q.path, status: x.status, body: x.body }); if (x.aspectHit) fresh.aspectHit = true; if (x.txHit) fresh.txHit = true; } }
+    if (b.ok) for (const q of m.auto.requests) { const x = http(b.ctx, q.method, q.path, q.body); fresh.responses.push({ method: q.method, path: q.path, status: x.status, body: x.body, reqBody: q.body, exception: x.exception }); if (x.aspectHit) fresh.aspectHit = true; if (x.txHit) fresh.txHit = true; } }
   if (m.auto.tests) fresh.tests = E.runTests(files);
-  return m.check(fresh);
+  if (m.auto.mutants) { fresh.mutants = {}; for (const mu of m.auto.mutants) fresh.mutants[mu] = E.runTests(files, null, { mutant: mu }); }
+  return { ok: !!m.check(fresh, files), fresh };
 };
+ok(E.MISSIONS.length === 12, `미션 ${E.MISSIONS.length}개`);
 ok(E.MISSIONS.every(m => m.auto && (m.auto.requests || m.auto.tests)), '모든 미션에 자동 채점 시나리오(auto)가 있음');
-E.MISSIONS.forEach(m => ok(autoRun({ ...E.STARTER, ...E.SOLUTIONS }, m), `자동 채점: 정답 코드로 미션 ${m.id} 통과`));
-E.MISSIONS.forEach(m => ok(!autoRun({ ...E.STARTER }, m), `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
+E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
+E.MISSIONS.forEach(m => ok(autoRun(sol, m).ok, `자동 채점: 정답 코드로 미션 ${m.id} (${m.title}) 통과`));
+E.MISSIONS.forEach(m => ok(!autoRun({ ...E.STARTER }, m).ok, `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
 
-/* 순서 자유: 아무 미션도 다른 미션을 요구하지 않는다 (앱 기동 m1 제외) */
-const solo = { started: true, responses: [], aspectHit: true, txHit: false, tests: null };
-ok(E.MISSIONS.find(m => m.id === 'm10').check(solo) && !E.MISSIONS.find(m => m.id === 'm9').check(solo), '미션은 서로 독립적으로 채점됨 (순서 자유)');
+/* 미션별 함정: 그럴듯하지만 틀린 코드는 통과하지 않는다 */
+const M = id => E.MISSIONS.find(m => m.id === id);
+const viaSave = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('article.update(request.getTitle(), request.getContent());', 'article.update(request.getTitle(), request.getContent());\n        blogRepository.save(article);') };
+ok(viaSave[SVC] !== E.SOLUTIONS[SVC] && !autoRun(viaSave, M('m6')).ok, '미션 6: update 에서 save() 를 부르면 불합격');
+const orElseNull = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('.orElseThrow(() -> new IllegalArgumentException("not found: " + id));\n    }\n\n    public void', '.orElse(null);\n    }\n\n    public void') };
+ok(orElseNull[SVC] !== E.SOLUTIONS[SVC] && !autoRun(orElseNull, M('m4')).ok, '미션 4: orElse(null) 이면 불합격');
+const ok200 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('return ResponseEntity.status(HttpStatus.CREATED).body(', 'return ResponseEntity.ok().body(') };
+ok(!autoRun(ok200, M('m2')).ok, '미션 2: POST 가 200 이면 불합격 (제공 테스트 isCreated)');
+const del204 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('blogService.delete(id);\n        return ResponseEntity.ok().build();', 'blogService.delete(id);\n        return ResponseEntity.noContent().build();') };
+ok(autoRun(del204, M('m5')).ok, '미션 5: 204 No Content 로 만들어도 정답');
+const recDto = { ...sol, [J + 'dto/AddArticleRequest.java']: 'package com.example.blog.dto;\n\nimport com.example.blog.domain.Article;\n\npublic record AddArticleRequest(String title, String content) {\n    public Article toEntity() {\n        return new Article(title, content);\n    }\n}\n' };
+ok(autoRun(recDto, M('m2')).ok, '미션 2: 요청 DTO 를 record 로 만들어도 정답 (Lombok 강제 안 함)');
+const noRO = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace(/@Transactional\(readOnly = true\)\n    /g, '') };
+ok(!autoRun(noRO, M('m7')).ok, '미션 7: 조회 메서드에 readOnly 가 없으면 불합격');
+const classRO = { ...sol, [SVC]: noRO[SVC].replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)') };
+ok(autoRun(classRO, M('m7')).ok, '미션 7: 클래스 readOnly + update 만 @Transactional 도 정답');
+const weakDel = { ...sol, [CTT]: E.SOLUTIONS[CTT].replace('        // then\n        List<Article> articles = blogRepository.findAll();\n        assertThat(articles).isEmpty();\n', '') };
+const r8 = autoRun(weakDel, M('m8'));
+ok(weakDel[CTT] !== E.SOLUTIONS[CTT] && !r8.ok, '미션 8: 상태 코드만 보는 삭제 테스트는 불합격 (변이 검사)');
+ok(/리포지토리/.test(M('m8').diagnose({ files: weakDel, session: r8.fresh, server: { running: false, dirty: false }, problems: [], tests: r8.fresh.tests })[0] || ''), '진단: 변이에서 살아남은 삭제 테스트를 지적');
+const weakUpd = { ...sol, [CTT]: E.SOLUTIONS[CTT].replace('        result.andExpect(status().isOk());\n\n        Article updatedArticle = blogRepository.findById(savedArticle.getId()).orElseThrow();\n        assertThat(updatedArticle.getTitle()).isEqualTo(newTitle);\n        assertThat(updatedArticle.getContent()).isEqualTo(newContent);', '        result.andExpect(status().isOk())\n                .andExpect(jsonPath("$.title").value(newTitle));') };
+ok(weakUpd[CTT] !== E.SOLUTIONS[CTT] && !autoRun(weakUpd, M('m9')).ok, '미션 9: 응답 JSON 만 보는 수정 테스트는 불합격 (변경 감지 꺼도 통과하므로)');
+const weakRepo = { ...sol, [RT]: E.SOLUTIONS[RT].replace(/    @Test\n    @DisplayName\("전체 조회"\)[\s\S]*?\n    }\n/, '').replace('assertThat(blogRepository.findById(saved.getId())).isPresent();', '') };
+ok(!autoRun(weakRepo, M('m10')).ok, '미션 10: 저장한 것을 다시 조회해 검증하지 않는 약한 테스트는 불합격 (변이 검사)');
+
+/* 현재 코드 진단: 시작 코드에서 모든 미션이 구체적인 진단을 내고, 코드는 알려 주지 않는다 */
+const dctx = (files, extra = {}) => ({ files, session: { responses: [], tests: null }, server: { running: false, dirty: false }, problems: E.javaProblems(E.buildModel(files)), tests: null, ...extra });
+const d0 = dctx({ ...E.STARTER });
+ok(E.MISSIONS.every(m => (m.diagnose(d0)[0] || '').length > 10), '시작 코드: 모든 미션이 구체적인 진단 문구를 냄');
+ok(E.MISSIONS.every(m => !/@(Service|PathVariable|RequestBody|Entity|Id|Transactional\(|Component|NoArgsConstructor)\b|return\s+\w+\.\w+\(/.test(m.diagnose(d0).join(' '))), '진단 문구에 정답 코드(어노테이션 이름·return 문)가 없음');
+ok(/엔티티|테이블/.test(M('m1').diagnose(d0)[0]), '진단: 시작 코드에서는 엔티티 표시부터 안내');
+const entOnly = { ...E.STARTER, [ART]: E.STARTER[ART].replace('public class Article {', '@jakarta.persistence.Entity\npublic class Article {') };
+ok(/기본 키|PK/.test(M('m1').diagnose(dctx(entOnly))[0]), '진단: @Entity 만 있으면 @Id 를 안내');
+ok(/Run/.test(M('m1').diagnose(dctx(sol))[0]), '진단: 코드가 맞고 앱이 꺼져 있으면 Run 안내');
+ok(/Rerun/.test(M('m1').diagnose(dctx(sol, { server: { running: true, dirty: true } }))[0]), '진단: 앱 실행 중 코드가 바뀌면 Rerun 안내');
+
 /* 직접 만든 새 파일도 실행된다 */
 const own = { ...sol, [J + 'controller/HelloController.java']: `package com.example.blog.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\n@RestController\n@RequestMapping("/api/hellos")\npublic class HelloController {\n\n    @GetMapping\n    public String hello() {\n        return "hello";\n    }\n}\n` };
 const ob = E.boot(own); ok(ob.ok, '직접 만든 컨트롤러 파일을 포함해도 기동');
-if (ob.ok) { const x = E.handle(ob.ctx, { method: 'GET', url: 'http://localhost:8080/api/hellos', headers: {}, body: '' }); ok(x.status === 200 && x.body === 'hello', '직접 만든 GET /api/hellos → 200 "hello"'); }
+if (ob.ok) { const x = http(ob.ctx, 'GET', '/api/hellos'); ok(x.status === 200 && x.body === 'hello', '직접 만든 GET /api/hellos → 200 "hello"'); }
 console.log(fail ? `\n실패 ${fail}건` : '\n모두 통과');
 process.exit(fail ? 1 : 0);
