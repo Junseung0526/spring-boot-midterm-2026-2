@@ -32,6 +32,7 @@ function create(host, hooks) {
   });
 
   function showProblems(list) {
+    list = list.filter(p => p.kind !== 'blank');   // 실습 빈칸은 에디터 여백(노란 점)으로만 표시
     const errs = list.filter(p => p.sev === 'error');
     host.querySelector('#pcnt').textContent = errs.length || '';
     const byFile = {};

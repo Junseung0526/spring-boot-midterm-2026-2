@@ -1,5 +1,5 @@
-/* project/missions.js — 시험 형식(빈칸 채우기 · 코드 해석)에 맞춘 20개 미션(7단계).
-   시작 코드는 완성된 블로그 API 에서 어노테이션 · 핵심 한 줄만 비운 것이고, [미션 N] 주석이 빈칸 위치다.
+/* project/missions.js — 시험 형식(빈칸 채우기 · 코드 해석)에 맞춘 19개 미션(7단계).
+   시작 코드는 완성된 블로그 API 에서 단어만 ___ 로 비운 것이고(코드를 고치는 문항은 없음), [미션 N] 주석이 빈칸 위치다.
    빈칸 미션: 빈칸 검사(blanks) + 실제 실행(요청 · 테스트)으로 채점.  해석 미션(quiz): 답을 입력하면 핵심어 포함 여부로 채점.
    진단은 "무엇이 왜 안 되는지" 만 말하고 코드는 알려 주지 않는다 (코드는 정답 확인 2번 실패 후 정답 예시에서).
    state = session: { started, responses[], aspectHit, txHit, tests, mutants? }  check(session, files) */
@@ -79,16 +79,16 @@ const BLANKS = {
     ['① 기본 생성자', f => !!annOf(ty(f, 'AddArticleRequest'), 'NoArgsConstructor') || ty(f, 'AddArticleRequest').kind === 'record'],
     ['② 모든 필드 생성자', f => { const t = ty(f, 'AddArticleRequest'); return t.kind === 'record' || !!annOf(t, 'AllArgsConstructor') || t.ctors.some(k => k.params.length === 2); }],
     ['③ getter', f => hasGetter(ty(f, 'AddArticleRequest'), 'title')],
-    ['④ toEntity() 의 빌더', f => { const b = bodyOf(ty(f, 'AddArticleRequest'), 'toEntity'); return /Article\s*\.\s*builder\s*\(\s*\)/.test(b) && /\.title\s*\(\s*title\s*\)/.test(b) && /\.content\s*\(\s*content\s*\)/.test(b) && /\.build\s*\(\s*\)/.test(b); }],
-    ['⑤ ArticleResponse 의 getter', f => hasGetter(ty(f, 'ArticleResponse'), 'title')],
+    ['④ ⑤ toEntity() 의 빌더', f => { const b = bodyOf(ty(f, 'AddArticleRequest'), 'toEntity'); return /Article\s*\.\s*builder\s*\(\s*\)/.test(b) && /\.title\s*\(\s*title\s*\)/.test(b) && /\.content\s*\(\s*content\s*\)/.test(b) && /\.build\s*\(\s*\)/.test(b); }],
+    ['⑥ ArticleResponse 의 getter', f => hasGetter(ty(f, 'ArticleResponse'), 'title')],
   ],
   m5: [
     ['① 생성자 자동 생성', f => !!annOf(ty(f, 'BlogService'), 'RequiredArgsConstructor') || ty(f, 'BlogService').ctors.some(k => k.params.length === 1)],
     ['② 서비스 빈 등록', f => !!annOf(ty(f, 'BlogService'), 'Service')],
     ['③ final', f => (fieldOf(f, 'BlogService', 'blogRepository') || { mods: [] }).mods.includes('final')],
-    ['④ save()', f => /return\s+blogRepository\s*\.\s*save\s*\(\s*request\s*\.\s*toEntity\s*\(\s*\)\s*\)\s*;/.test(bodyOf(ty(f, 'BlogService'), 'save'))],
-    ['⑤ findById 의 예외', f => throwsNotFound(bodyOf(ty(f, 'BlogService'), 'findById'))],
-    ['⑥ update 의 예외', f => throwsNotFound(bodyOf(ty(f, 'BlogService'), 'update'))],
+    ['④ ⑤ save(toEntity())', f => /return\s+blogRepository\s*\.\s*save\s*\(\s*request\s*\.\s*toEntity\s*\(\s*\)\s*\)\s*;/.test(bodyOf(ty(f, 'BlogService'), 'save'))],
+    ['⑥ ⑦ findById 의 예외', f => throwsNotFound(bodyOf(ty(f, 'BlogService'), 'findById'))],
+    ['⑧ ⑨ update 의 예외', f => throwsNotFound(bodyOf(ty(f, 'BlogService'), 'update'))],
   ],
   m7: [
     ['① 컨트롤러 등록', f => !!annOf(ty(f, 'BlogApiController'), 'RestController')],
@@ -101,16 +101,18 @@ const BLANKS = {
     ['⑧ DELETE 매핑', f => mapsTo(meth(f, 'BlogApiController', 'deleteArticle'), 'DeleteMapping', '/{id}')],
     ['⑨ 경로 변수', f => paramAnn(meth(f, 'BlogApiController', 'deleteArticle'), 'PathVariable', 0)],
     ['⑩ PUT 매핑', f => mapsTo(meth(f, 'BlogApiController', 'updateArticle'), 'PutMapping', '/{id}')],
-    ['⑪ 경로 변수 + 요청 본문', f => { const m = meth(f, 'BlogApiController', 'updateArticle'); return paramAnn(m, 'PathVariable', 0) && paramAnn(m, 'RequestBody', 1); }],
+    ['⑪ 경로 변수', f => paramAnn(meth(f, 'BlogApiController', 'updateArticle'), 'PathVariable', 0)],
+    ['⑫ 요청 본문', f => paramAnn(meth(f, 'BlogApiController', 'updateArticle'), 'RequestBody', 1)],
   ],
   m8: [
     ['① 201 상태 코드', f => /HttpStatus\s*\.\s*CREATED/.test(bodyOf(ty(f, 'BlogApiController'), 'addArticle'))],
-    ['② stream 변환', f => { const b = bodyOf(ty(f, 'BlogApiController'), 'findAllArticles'); return /blogService\s*\.\s*findAll\s*\(\s*\)/.test(b) && /\.stream\s*\(\s*\)/.test(b) && /\.map\s*\(/.test(b) && /ArticleResponse/.test(b.replace(/List<ArticleResponse>/, '')) && /\.(toList\s*\(\s*\)|collect\s*\()/.test(b); }],
+    ['② stream()', f => /\.\s*stream\s*\(\s*\)/.test(bodyOf(ty(f, 'BlogApiController'), 'findAllArticles'))],
+    ['③ 생성자 참조', f => /ArticleResponse\s*::\s*new/.test(bodyOf(ty(f, 'BlogApiController'), 'findAllArticles'))],
   ],
   m11: [
-    ['⑥ findAll 읽기 전용', f => isReadOnly(ty(f, 'BlogService'), 'findAll')],
-    ['⑦ findById 읽기 전용', f => isReadOnly(ty(f, 'BlogService'), 'findById')],
-    ['⑧ update 쓰기 트랜잭션', f => isTx(ty(f, 'BlogService'), 'update') && !isReadOnly(ty(f, 'BlogService'), 'update')],
+    ['① findAll 읽기 전용', f => isReadOnly(ty(f, 'BlogService'), 'findAll')],
+    ['② findById 읽기 전용', f => isReadOnly(ty(f, 'BlogService'), 'findById')],
+    ['③ update 쓰기 트랜잭션', f => isTx(ty(f, 'BlogService'), 'update') && !isReadOnly(ty(f, 'BlogService'), 'update')],
   ],
   m14: [
     ['① 통합 테스트', f => !!annOf(ty(f, 'BlogApiControllerTest'), 'SpringBootTest')],
@@ -123,12 +125,9 @@ const BLANKS = {
   m15: [
     ['① JPA 슬라이스 테스트', f => !!annOf(ty(f, 'BlogRepositoryTest'), 'DataJpaTest')],
     ['② 리포지토리 주입', f => !!annOf(fieldOf(f, 'BlogRepositoryTest', 'blogRepository'), 'Autowired')],
+    ['③ 값이 있는지 검증', f => /\)\s*\)\s*\.\s*isPresent\s*\(\s*\)/.test(bodyOf(ty(f, 'BlogRepositoryTest'), 'saveAndFind'))],
   ],
-  m17: [
-    ['① data.sql 주석 풀기', f => (f[DATA] || '').split('\n').filter(l => /^\s*insert\s+into\s+book\b/i.test(l)).length >= 2],
-    ['② defer 설정', f => /^\s*jpa\s*:\s*\n(\s+.*\n)*?\s+defer-datasource-initialization\s*:\s*true/m.test((f[YAML] || '') + '\n')],
-  ],
-  m19: [
+  m18: [
     ['① Aspect 표시', f => !!annOf(ty(f, 'LogAspect'), 'Aspect')],
     ['② 빈 등록', f => ['Component', 'Service', 'Configuration'].some(n => annOf(ty(f, 'LogAspect'), n))],
     ['③ 포인트컷 패키지', f => /execution\(\s*\*\s+com\.example\.blog\.service\.\./.test(f[ASP] || '')],
@@ -137,7 +136,7 @@ const BLANKS = {
 
 /* ── 빈칸을 다 채운 뒤의 진단 (실제 실행 결과 기준) ── */
 const AFTER = {
-  m1: c => [okFile(c.files, 'Article.java') ? '빈칸은 다 채웠어요 — 정답 확인을 누르세요. (BlogService 의 빨간 줄은 미션 3 에서 풀려요)' : javaErr(c)],
+  m1: c => [okFile(c.files, 'Article.java') ? '빈칸은 다 채웠어요 — 정답 확인을 누르세요. (ArticleResponse 의 빨간 줄도 getter 가 생기면 사라져요)' : javaErr(c)],
   m3: c => sendTail(c, false, '빈칸은 다 채웠어요 — ▶ Run 으로 앱이 뜨는지 보고 정답 확인을 누르세요.'),
   m4: c => [javaErr(c) || '빈칸은 다 채웠어요 — 정답 확인을 누르세요.'],
   m5: c => sendTail(c, false, '빈칸은 다 채웠어요 — 정답 확인을 누르세요. (요청은 미션 7 에서 컨트롤러를 연결해야 보낼 수 있어요)'),
@@ -152,25 +151,23 @@ const AFTER = {
     return sendTail(c, false, '빈칸은 다 채웠어요 — 1 → 4(PUT) → 3(GET)번으로 수정이 정말 반영되는지 보거나 정답 확인을 누르세요.'); },
   m14: c => pick(testDiag(c, 'addArticle'), testDiag(c, 'findAllArticles'), testDiag(c, 'findArticle'), '테스트가 모두 통과해요 — 정답 확인을 누르세요.').slice(0, 1),
   m15: c => pick(testDiag(c, 'saveAndFind'), '테스트가 통과해요 — 정답 확인을 누르세요.').slice(0, 1),
-  m17: c => { const g = lastResp(c, r => r.method === 'GET' && r.path === '/books'); return sendTail(c, g && g.status === 200, '빈칸은 다 채웠어요 — ⟳ Rerun 후 requests.http 6번(GET /books)을 보내 보세요.'); },
-  m19: c => sendTail(c, false, '빈칸은 다 채웠어요 — 서비스를 부르는 요청(2번 목록)을 보내 콘솔의 ▶ ◀ 로그를 확인하세요.'),
+  m18: c => sendTail(c, false, '빈칸은 다 채웠어요 — 서비스를 부르는 요청(2번 목록)을 보내 콘솔의 ▶ ◀ 로그를 확인하세요.'),
 };
 const blankDiag = id => c => { const m = MISSIONS.find(x => x.id === id), miss = blanksLeft(m, c.files);
-  return miss.length ? [`아직 비어 있거나 틀린 빈칸: ${miss.join(' · ')}  — 코드의 [미션 ${id.slice(1)}] 주석을 보세요.`] : AFTER[id](c); };
+  return miss.length ? [`아직 비어 있거나 틀린 빈칸: ${miss.join(' · ')}  — 코드에서 [미션 ${id.slice(1)}] 주석이 달린 ___ 자리를 채우세요.`] : AFTER[id](c); };
 
 /* ── 정답 예시(스니펫): 정답 확인을 2번 틀리면 힌트 패널에 열린다 ── */
 const SNIP = {
   m1: '@Entity\n@Getter\n@NoArgsConstructor(access = AccessLevel.PROTECTED)\npublic class Article {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;',
   m3: 'public interface BlogRepository extends JpaRepository<Article, Long> {\n}',
-  m4: '@NoArgsConstructor\n@AllArgsConstructor\n@Getter\npublic class AddArticleRequest {\n    ...\n    public Article toEntity() {\n        return Article.builder()\n                .title(title)\n                .content(content)\n                .build();\n    }\n}\n\n@Getter\npublic class ArticleResponse { ... }',
-  m5: '@RequiredArgsConstructor\n@Service\npublic class BlogService {\n\n    private final BlogRepository blogRepository;\n\n    public Article save(AddArticleRequest request) {\n        return blogRepository.save(request.toEntity());\n    }\n\n    public Article findById(long id) {\n        return blogRepository.findById(id)\n                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));\n    }',
+  m4: '@NoArgsConstructor\n@AllArgsConstructor\n@Getter\npublic class AddArticleRequest {\n    ...\n        return Article.builder()\n                .title(title)\n                .content(content)\n                .build();\n}\n\n@Getter\npublic class ArticleResponse { ... }',
+  m5: '@RequiredArgsConstructor\n@Service\npublic class BlogService {\n\n    private final BlogRepository blogRepository;\n\n        return blogRepository.save(request.toEntity());\n\n        return blogRepository.findById(id)\n                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));',
   m7: '@RequiredArgsConstructor\n@RestController\n@RequestMapping("/api/articles")\npublic class BlogApiController {\n\n    @PostMapping\n    public ResponseEntity<ArticleResponse> addArticle(@RequestBody AddArticleRequest request)\n\n    @GetMapping\n    public ResponseEntity<List<ArticleResponse>> findAllArticles()\n\n    @GetMapping("/{id}")\n    public ResponseEntity<ArticleResponse> findArticle(@PathVariable("id") long id)\n\n    @DeleteMapping("/{id}")\n    public ResponseEntity<Void> deleteArticle(@PathVariable("id") long id)\n\n    @PutMapping("/{id}")\n    public ResponseEntity<ArticleResponse> updateArticle(@PathVariable("id") long id,\n                                                         @RequestBody UpdateArticleRequest request)',
-  m8: 'return ResponseEntity.status(HttpStatus.CREATED).body(new ArticleResponse(savedArticle));\n\nList<ArticleResponse> articles = blogService.findAll()\n        .stream()\n        .map(ArticleResponse::new)\n        .toList();',
+  m8: 'ResponseEntity.status(HttpStatus.CREATED)\n\nblogService.findAll()\n        .stream()\n        .map(ArticleResponse::new)\n        .toList();',
   m11: '@Transactional(readOnly = true)\npublic List<Article> findAll() { ... }\n\n@Transactional(readOnly = true)\npublic Article findById(long id) { ... }\n\n@Transactional\npublic Article update(long id, UpdateArticleRequest request) { ... }',
   m14: '@SpringBootTest\n@AutoConfigureMockMvc\nclass BlogApiControllerTest {\n\n    @Autowired\n    protected MockMvc mockMvc;\n    @Autowired\n    private WebApplicationContext context;\n    ... (나머지 두 필드도 @Autowired)\n\n    @BeforeEach\n    public void mockMvcSetup() { ... }\n\n    result.andExpect(status().isCreated());\n\n    @Sql("/test-db.sql")\n    @Test\n    public void findAllArticles() ...',
-  m15: '@DataJpaTest\nclass BlogRepositoryTest {\n\n    @Autowired\n    BlogRepository blogRepository;',
-  m17: '# data.sql: 두 줄의 -- 를 지움\n\n# application.yaml\nspring:\n  application:\n    name: blog\n  jpa:\n    defer-datasource-initialization: true',
-  m19: '@Slf4j\n@Aspect\n@Component\npublic class LogAspect {\n\n    @Around("execution(* com.example.blog.service..*(..))")',
+  m15: '@DataJpaTest\nclass BlogRepositoryTest {\n\n    @Autowired\n    BlogRepository blogRepository;\n\n    ... assertThat(blogRepository.findById(saved.getId())).isPresent();',
+  m18: '@Slf4j\n@Aspect\n@Component\npublic class LogAspect {\n\n    @Around("execution(* com.example.blog.service..*(..))")',
 };
 
 /* ── 자동 채점 시나리오 (정답 확인 버튼). static: 실행 없이 코드만 검사 ── */
@@ -183,8 +180,7 @@ const AUTO = {
   m8: { requests: [ADD, rq('GET', '/api/articles')] },
   m11: { requests: [ADD, rq('GET', '/api/articles'), rq('PUT', '/api/articles/1', PUTBODY), rq('GET', '/api/articles/1')] },
   m14: { tests: true }, m15: { tests: true },
-  m17: { requests: [rq('GET', '/books')] },
-  m19: { requests: [rq('GET', '/api/articles')] },
+  m18: { requests: [rq('GET', '/api/articles')] },
 };
 const RUN = {
   m1: (s, f) => okFile(f, 'Article.java') && okFile(f, 'ArticleResponse.java'),
@@ -197,8 +193,7 @@ const RUN = {
   m11: s => s.responses.some(r => r.method === 'GET' && r.path === '/api/articles' && r.status === 200) && titleIs(lastGet1(s), '수정한 제목'),
   m14: s => clsPass(s, 'BlogApiControllerTest', 3),
   m15: s => clsPass(s, 'BlogRepositoryTest', 1),
-  m17: s => s.responses.some(r => r.method === 'GET' && r.path === '/books' && r.status === 200 && Array.isArray(jsonOf(r)) && jsonOf(r).length >= 2 && jsonOf(r).every(b => b.title != null && b.author != null)),
-  m19: s => s.aspectHit,
+  m18: s => s.aspectHit,
 };
 
 /* ── 해석 미션: 핵심어 그룹마다 하나라도 들어 있으면 그 내용을 쓴 것으로 본다 (띄어쓰기 · 대소문자 무시) ── */
@@ -244,7 +239,7 @@ const MISSIONS = [
   blank('m7', S3, '[빈칸] 컨트롤러 매핑', 'BlogApiController 의 클래스 어노테이션 2개, 메서드 매핑 5개, 파라미터 어노테이션을 채우세요. 시험에 가장 많이 나오는 부분이에요.',
     ['클래스: JSON 을 돌려주는 컨트롤러 + 공통 경로. 메서드에는 HTTP 메서드별 매핑과 "/{id}" 만.', '파라미터: URL 의 {id} 는 경로 변수 어노테이션, JSON 본문은 요청 본문 어노테이션.', 'PUT 은 파라미터가 두 개라 두 개 다 붙여야 해요.'],
     { file: CTL, find: '[미션 7]' }, 'concept:mvc'),
-  blank('m8', S3, '[빈칸] 응답 만들기 (201 · stream)', 'POST 응답의 상태 코드를 "생성됨" 으로 바꾸고, 목록 조회에서 엔티티 리스트를 ArticleResponse 리스트로 바꾸세요.',
+  blank('m8', S3, '[빈칸] 응답 만들기 (201 · stream)', 'POST 응답의 상태 코드(201)와, 목록 조회에서 엔티티 리스트를 ArticleResponse 리스트로 변환하는 스트림 코드의 빈칸을 채우세요.',
     ['HttpStatus 의 상수 중 201 에 해당하는 것.', 'blogService.findAll() → .stream() → .map(엔티티 → DTO) → .toList()', 'ArticleResponse 에 Article 하나를 받는 생성자가 있으니 메서드 참조 ArticleResponse::new 를 쓸 수 있어요.'],
     { file: CTL, find: '[미션 8]' }, 'concept:mvc'),
   quiz('m9', S3, '[해석] 요청이 지나가는 계층', 'POST /api/articles 요청이 들어와서 DB 에 저장되기까지 거치는 계층(클래스)을 순서대로 쓰세요.',
@@ -276,17 +271,14 @@ const MISSIONS = [
     [['전체', '모든빈', '전부', '애플리케이션', '통합'], ['jpa', '리포지토리', 'repository', '엔티티', '슬라이스', '일부', '데이터']],
     '@SpringBootTest 는 애플리케이션 전체(모든 빈)를 띄우는 통합 테스트라 느리지만 컨트롤러 → 서비스 → 리포지토리를 함께 검증한다. @DataJpaTest 는 JPA 관련 빈(엔티티 · 리포지토리 · DataSource)만 띄우는 슬라이스 테스트이고, 테스트마다 트랜잭션을 롤백한다.',
     ['하나는 "전부", 하나는 "일부(슬라이스)" 를 띄워요.', '@DataJpaTest 가 띄우는 "일부" 가 무엇인지까지 쓰세요.'], { file: TT + 'repository/BlogRepositoryTest.java', find: 'class BlogRepositoryTest' }, 'concept:testing'),
-  blank('m17', S6, '[빈칸] Book 데이터 넣기', 'Book 엔티티 · 리포지토리 · 서비스 · 컨트롤러는 이미 있어요. data.sql 의 책 데이터를 살리고, 앱이 안 뜨면 콘솔을 읽고 application.yaml 을 고치세요.',
-    ['주석을 풀고 Rerun 하면 Table "BOOK" not found 로 실패해요 — 정상이에요.', 'data.sql 은 기본적으로 Hibernate 가 테이블을 만들기 "전에" 실행돼요.', 'spring.jpa 아래 "datasource 초기화를 미루는" 설정 (defer 로 시작).'],
-    { file: DATA, find: '[미션 17]' }, 'concept:boot'),
-  quiz('m18', S6, '[해석] Table not found 의 이유', 'defer 설정 없이 data.sql 의 book insert 를 풀면 Table "BOOK" not found 로 앱이 안 떠요. 왜 그런가요?',
+  quiz('m17', S6, '[해석] defer 설정이 없으면?', 'application.yaml 의 defer-datasource-initialization: true 줄을 지우면 앱이 Table "BOOK" not found 로 뜨지 않아요. 왜 그런가요?',
     [['먼저', '전에', '이전', '순서', '앞서', 'before'], ['테이블', 'table', 'ddl', 'hibernate', 'jpa', '생성']],
     'data.sql 은 기본적으로 Hibernate(JPA)가 엔티티를 보고 테이블을 만드는 것보다 "먼저" 실행된다. 그래서 book 테이블이 아직 없어 insert 가 실패한다. spring.jpa.defer-datasource-initialization: true 로 data.sql 실행을 테이블 생성 뒤로 미룬다.',
     ['두 가지 일이 일어나는 순서를 생각해 보세요: ① 테이블 생성 ② data.sql 실행.', '"무엇보다 먼저 실행되는지" 를 쓰세요.'], { file: YAML, find: 'spring:' }, 'concept:boot'),
-  blank('m19', S7, '[빈칸] LogAspect', 'LogAspect 에 빠진 어노테이션 2개를 채우고, 포인트컷의 오타를 고치세요.',
-    ['Aspect 표시와 빈 등록은 별개예요 — 둘 다 필요해요.', '포인트컷 execution(* 패키지..*(..)) 의 패키지가 실제 서비스 패키지와 같은지 한 글자씩 비교하세요.', '고친 뒤 목록 요청을 보내면 콘솔에 ▶ ◀ 로그가 찍혀요.'],
-    { file: ASP, find: '[미션 19]' }, 'concept:aop'),
-  quiz('m20', S7, '[해석] @Aspect 만으로는 안 되는 이유', 'LogAspect 에 @Aspect 만 붙이고 @Component 를 안 붙이면 로그가 찍히지 않아요. 이유는?',
+  blank('m18', S7, '[빈칸] LogAspect', 'LogAspect 의 어노테이션 빈칸 2개와 포인트컷의 패키지 이름 빈칸을 채우세요.',
+    ['Aspect 표시와 빈 등록은 별개예요 — 둘 다 필요해요.', '포인트컷 execution(* 패키지..*(..)) 에는 BlogService 의 package 선언 마지막 이름이 들어가요.', '고친 뒤 목록 요청을 보내면 콘솔에 ▶ ◀ 로그가 찍혀요.'],
+    { file: ASP, find: '[미션 18]' }, 'concept:aop'),
+  quiz('m19', S7, '[해석] @Aspect 만으로는 안 되는 이유', 'LogAspect 에 @Aspect 만 붙이고 @Component 를 안 붙이면 로그가 찍히지 않아요. 이유는?',
     [['빈', 'bean', '등록', '컨테이너', '스캔', '관리']],
     '@Aspect 는 "이 클래스는 Aspect 다" 라는 표시일 뿐 빈 등록이 아니다. 스프링 컨테이너가 관리하는 빈이어야 AOP 가 이 Aspect 를 보고 대상 빈의 프록시를 만든다. 그래서 @Component(또는 @Bean 등록)가 필요하다.',
     ['스프링 AOP 는 컨테이너가 "알고 있는" Aspect 만 적용해요.', '"빈" 이라는 단어가 들어가야 해요.'], { file: ASP, find: 'public class LogAspect' }, 'concept:aop'),

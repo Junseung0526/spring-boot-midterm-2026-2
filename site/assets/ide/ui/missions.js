@@ -58,7 +58,7 @@ function create(host, modal, toast) {
     host.innerHTML = `<div class="mh"><span>진행도</span><span>${n} / ${total} 완료</span></div><div class="mbar"><div style="width:${n / total * 100}%"></div></div>` + doneBlock +
       (rest.length ? restHtml : '<div class="alldone">모든 미션을 완료했어요!<small>위의 "완료한 미션"을 펼쳐 다시 확인하거나, 모의고사에 도전해 보세요.</small></div>') +
       `<div class="mfoot"><button data-sol>정답 코드 보기</button><button data-reset>⟲ 프로젝트 초기화</button></div>
-       <p class="mnote">TIP · 코드의 <b>[미션 N]</b> 주석이 빈칸 위치예요. 빈칸 미션은 <b>정답 확인</b>, 해석 미션은 답을 적고 <b>답 제출</b>. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 엔티티 → DTO · 서비스 → 컨트롤러 → 트랜잭션 → 테스트 → 설정 → AOP 순으로, 시험처럼 <b>빈칸 채우기</b>와 <b>코드 해석</b>을 번갈아 풀어요.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
+       <p class="mnote">TIP · 코드의 <b>___</b> 가 빈칸이에요 ([미션 N] 주석이 달린 줄). 빈칸 미션은 <b>정답 확인</b>, 해석 미션은 답을 적고 <b>답 제출</b>. 직접 Run 하고 요청을 보내 확인해도 됩니다.<br>앞 미션을 끝내면 다음 미션이 열려요. 순서를 건너뛰고 싶으면 "미리 열기" — 아무 미션이나 먼저 해도, 미션 밖의 코드를 직접 써도 실행됩니다. (단 HTTP 미션은 앱이 켜져 있어야 함)<br>위에서부터 <b>순서대로</b> 따라 하면 엔티티 → DTO · 서비스 → 컨트롤러 → 트랜잭션 → 테스트 → 설정 → AOP 순으로, 시험처럼 <b>빈칸 채우기</b>와 <b>코드 해석</b>을 번갈아 풀어요.<br>코드 수정 후에는 <b>Rerun ⟳</b> 해야 반영됩니다 (실제 IntelliJ 와 동일).<br>단축키 · Shift+F10 실행 · Ctrl+Space 자동완성 · Ctrl+Enter 요청 전송 · Ctrl+/ 주석 · Ctrl+D 줄 복제</p>`;
     sc.scrollTop = top;
     if (fq) { const q = host.querySelector(`[data-qin="${fq}"]`); if (q) { q.focus(); q.setSelectionRange(...sel); } }
   };

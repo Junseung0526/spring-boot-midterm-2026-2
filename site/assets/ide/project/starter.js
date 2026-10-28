@@ -28,10 +28,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// [미션 1] ① 이 클래스를 JPA 엔티티로  ② 모든 필드의 getter 자동 생성  ③ JPA 용 기본 생성자(접근 수준 PROTECTED) — 어노테이션 3개
+@___   // [미션 1] ① JPA 엔티티
+@___   // [미션 1] ② 모든 필드의 getter (Lombok)
+@___(access = AccessLevel.___)   // [미션 1] ③ JPA 용 인자 없는 생성자 + 접근 수준
 public class Article {
 
-    // [미션 1] ④ 기본 키(PK) 표시  ⑤ DB 가 자동 증가(AUTO_INCREMENT)로 값을 만드는 생성 전략 — 어노테이션 2개
+    @___   // [미션 1] ④ 기본 키(PK)
+    @___(strategy = GenerationType.___)   // [미션 1] ⑤ 값 생성 + DB 자동 증가 전략
     private Long id;
 
     private String title;
@@ -55,8 +58,7 @@ public class Article {
 import com.example.blog.domain.Article;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-// [미션 3] Spring Data JPA 가 구현체를 만들어 주는 인터페이스를 상속하세요 — 제네릭은 <엔티티 타입, @Id 필드의 타입>
-public interface BlogRepository {
+public interface BlogRepository extends ___<___, ___> {   // [미션 3] Spring Data JPA 인터페이스 <엔티티, ID 타입>
 }
 `,
 [J + 'dto/AddArticleRequest.java']: `package com.example.blog.dto;
@@ -66,14 +68,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// [미션 4] ① 기본 생성자  ② 모든 필드를 받는 생성자  ③ getter — Lombok 어노테이션 3개
+@___   // [미션 4] ① 인자 없는 생성자 (Jackson 이 JSON → 객체로 바꿀 때)
+@___   // [미션 4] ② 모든 필드를 받는 생성자
+@___   // [미션 4] ③ getter
 public class AddArticleRequest {
 
     private String title;
     private String content;
 
     public Article toEntity() {
-        return null;   // [미션 4] ④ Article 의 빌더로 title · content 를 넣어 엔티티를 만들어 돌려주세요
+        return Article.___()   // [미션 4] ④ 빌더 시작
+                .title(title)
+                .content(content)
+                .___();   // [미션 4] ⑤ 빌더 끝 (객체 생성)
     }
 }
 `,
@@ -82,7 +89,7 @@ public class AddArticleRequest {
 import com.example.blog.domain.Article;
 import lombok.Getter;
 
-// [미션 4] ⑤ Jackson 이 이 객체를 JSON 으로 바꾸려면 getter 가 필요해요 — Lombok 어노테이션 1개
+@___   // [미션 4] ⑥ getter (Jackson 이 이 객체를 JSON 으로 바꿀 때 필요)
 public class ArticleResponse {
 
     private final Long id;
@@ -123,33 +130,35 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-// [미션 5] ① final 필드를 받는 생성자 자동 생성(Lombok)  ② 비즈니스 계층 빈으로 등록 — 어노테이션 2개
+@___   // [미션 5] ① final 필드를 받는 생성자 (Lombok)
+@___   // [미션 5] ② 비즈니스 계층 빈
 public class BlogService {
 
-    // [미션 5] ③ 생성자 주입을 받으려면 이 필드에 키워드 하나가 필요해요
-    private BlogRepository blogRepository;
+    private ___ BlogRepository blogRepository;   // [미션 5] ③ 생성자 주입을 받으려면 필요한 키워드
 
     public Article save(AddArticleRequest request) {
-        return null;   // [미션 5] ④ 요청 DTO 를 엔티티로 바꿔(toEntity) 리포지토리로 저장하고, 저장된 엔티티를 돌려주세요
+        return blogRepository.___(request.___());   // [미션 5] ④ 저장 메서드  ⑤ 요청 DTO → 엔티티
     }
 
-    // [미션 11] ⑥ 읽기 전용 트랜잭션
+    @___(readOnly = ___)   // [미션 11] ① 읽기 전용 트랜잭션
     public List<Article> findAll() {
         return blogRepository.findAll();
     }
 
-    // [미션 11] ⑦ 읽기 전용 트랜잭션
+    @___(readOnly = ___)   // [미션 11] ② 읽기 전용 트랜잭션
     public Article findById(long id) {
-        return blogRepository.findById(id).orElse(null);   // [미션 5] ⑤ 없으면 null 대신 예외 — IllegalArgumentException, 메시지 "not found: " + id
+        return blogRepository.findById(id)
+                .___(() -> new ___("not found: " + id));   // [미션 5] ⑥ 값이 없으면 예외를 던지는 Optional 메서드  ⑦ 잘못된 인자 예외
     }
 
     public void delete(long id) {
         blogRepository.deleteById(id);
     }
 
-    // [미션 11] ⑧ 쓰기 트랜잭션 — save() 없이 변경 감지로 DB 에 반영되려면 꼭 필요해요
+    @___   // [미션 11] ③ 쓰기 트랜잭션 — save() 없이 변경 감지로 반영되려면 꼭 필요
     public Article update(long id, UpdateArticleRequest request) {
-        Article article = blogRepository.findById(id).orElse(null);   // [미션 5] ⑥ 위 ⑤ 와 똑같이 예외로
+        Article article = blogRepository.findById(id)
+                .___(() -> new ___("not found: " + id));   // [미션 5] ⑧ ⑨ 위 ⑥ ⑦ 과 같음
         article.update(request.getTitle(), request.getContent());
         return article;
     }
@@ -169,38 +178,43 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// [미션 7] ① JSON 을 돌려주는 컨트롤러로 등록  ② 이 클래스 메서드들의 공통 경로 "/api/articles" — 어노테이션 2개
 @RequiredArgsConstructor
+@___   // [미션 7] ① JSON 을 돌려주는 컨트롤러
+@___("/api/articles")   // [미션 7] ② 이 클래스 메서드들의 공통 경로
 public class BlogApiController {
 
     private final BlogService blogService;
 
-    // [미션 7] ③ POST 요청 매핑  ④ 파라미터: 요청 본문(JSON)을 DTO 로 받기
-    public ResponseEntity<ArticleResponse> addArticle(AddArticleRequest request) {
+    @___   // [미션 7] ③ POST 요청 매핑
+    public ResponseEntity<ArticleResponse> addArticle(@___ AddArticleRequest request) {   // [미션 7] ④ 요청 본문(JSON) → DTO
         Article savedArticle = blogService.save(request);
-        return ResponseEntity.status(HttpStatus.OK).body(new ArticleResponse(savedArticle));   // [미션 8] ① 생성 성공에 맞는 상태 코드로
+        return ResponseEntity.status(HttpStatus.___).body(new ArticleResponse(savedArticle));   // [미션 8] ① 생성 성공(201)
     }
 
-    // [미션 7] ⑤ GET 요청 매핑 (목록)
+    @___   // [미션 7] ⑤ GET 요청 매핑 (목록)
     public ResponseEntity<List<ArticleResponse>> findAllArticles() {
-        List<ArticleResponse> articles = List.of();   // [미션 8] ② blogService.findAll() 결과를 stream 으로 ArticleResponse 로 바꿔 리스트로
+        List<ArticleResponse> articles = blogService.findAll()
+                .___()   // [미션 8] ② 컬렉션 → 스트림
+                .map(ArticleResponse::___)   // [미션 8] ③ 생성자 참조
+                .toList();
         return ResponseEntity.ok().body(articles);
     }
 
-    // [미션 7] ⑥ GET 요청 매핑 (경로 "/{id}")  ⑦ 파라미터: URL 의 {id} 받기
-    public ResponseEntity<ArticleResponse> findArticle(long id) {
+    @___("/{id}")   // [미션 7] ⑥ GET 요청 매핑 (한 건)
+    public ResponseEntity<ArticleResponse> findArticle(@___("id") long id) {   // [미션 7] ⑦ URL 의 {id}
         Article article = blogService.findById(id);
         return ResponseEntity.ok().body(new ArticleResponse(article));
     }
 
-    // [미션 7] ⑧ DELETE 요청 매핑 (경로 "/{id}")  ⑨ 파라미터: URL 의 {id}
-    public ResponseEntity<Void> deleteArticle(long id) {
+    @___("/{id}")   // [미션 7] ⑧ DELETE 요청 매핑
+    public ResponseEntity<Void> deleteArticle(@___("id") long id) {   // [미션 7] ⑨ URL 의 {id}
         blogService.delete(id);
         return ResponseEntity.ok().build();
     }
 
-    // [미션 7] ⑩ PUT 요청 매핑 (경로 "/{id}")  ⑪ 파라미터 두 개: URL 의 {id}, 요청 본문
-    public ResponseEntity<ArticleResponse> updateArticle(long id, UpdateArticleRequest request) {
+    @___("/{id}")   // [미션 7] ⑩ PUT 요청 매핑
+    public ResponseEntity<ArticleResponse> updateArticle(@___("id") long id,   // [미션 7] ⑪ URL 의 {id}
+                                                         @___ UpdateArticleRequest request) {   // [미션 7] ⑫ 요청 본문
         Article updatedArticle = blogService.update(id, request);
         return ResponseEntity.ok().body(new ArticleResponse(updatedArticle));
     }
@@ -213,7 +227,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// 5장 실습 — 완성된 코드예요 (미션 17 에서 데이터만 넣어요)
+// 5장 실습 — 완성된 코드예요 (미션 17: data.sql 과 application.yaml 을 읽어 보세요)
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -286,12 +300,12 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
-// [미션 19] ① "이 클래스는 Aspect" 표시  ② 스프링 빈으로 등록 — 어노테이션 2개
 @Slf4j
+@___   // [미션 18] ① "이 클래스는 Aspect" 표시
+@___   // [미션 18] ② 스프링 빈으로 등록
 public class LogAspect {
 
-    // [미션 19] ③ 포인트컷의 패키지 이름에 오타가 하나 있어요 (실제 서비스 패키지와 비교)
-    @Around("execution(* com.example.blog.services..*(..))")
+    @Around("execution(* com.example.blog.___..*(..))")   // [미션 18] ③ 서비스 클래스들이 있는 패키지 이름
     public Object logExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
         long start = System.currentTimeMillis();
         log.info("▶ {} 시작", pjp.getSignature().toShortString());
@@ -305,15 +319,15 @@ public class LogAspect {
 [R + 'application.yaml']: `spring:
   application:
     name: blog
-  # [미션 17] ② data.sql 을 JPA 가 테이블을 만든 "뒤에" 실행하게 하는 설정 (spring.jpa 아래 한 줄)
+  jpa:
+    defer-datasource-initialization: true   # 미션 17: 이 줄이 없으면 어떻게 될까요?
 `,
 [R + 'test-db.sql']: `INSERT INTO article (title, content) VALUES ('제목 1', '내용 1');
 INSERT INTO article (title, content) VALUES ('제목 2', '내용 2');
 INSERT INTO article (title, content) VALUES ('제목 3', '내용 3');
 `,
-[R + 'data.sql']: `-- [미션 17] ① Book 엔티티는 이미 있어요. 아래 두 줄의 주석(--)을 푸세요 → 앱이 안 뜨면 콘솔을 읽고 application.yaml 을 고치세요
--- insert into book (title, author) values ('스프링 부트 4 개발자 되기', '신선영');
--- insert into book (title, author) values ('자바 ORM 표준 JPA 프로그래밍', '김영한');
+[R + 'data.sql']: `insert into book (title, author) values ('스프링 부트 4 개발자 되기', '신선영');
+insert into book (title, author) values ('자바 ORM 표준 JPA 프로그래밍', '김영한');
 `,
 [T + 'BlogApplicationTests.java']: `package com.example.blog;
 
@@ -354,19 +368,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// [미션 14] ① 애플리케이션 전체(모든 빈)를 띄우는 통합 테스트  ② MockMvc 를 자동으로 만들어 주입 — 어노테이션 2개
+@___   // [미션 14] ① 애플리케이션 전체(모든 빈)를 띄우는 통합 테스트
+@___   // [미션 14] ② MockMvc 자동 구성
 class BlogApiControllerTest {
 
-    // [미션 14] ③ 아래 네 필드는 스프링이 넣어 줘요 — 필드마다 같은 어노테이션 하나
+    @___   // [미션 14] ③ 스프링이 넣어 주는 필드 (아래 세 필드도 같은 어노테이션)
     protected MockMvc mockMvc;
 
+    @___
     private WebApplicationContext context;
 
+    @___
     private BlogRepository blogRepository;
 
+    @___
     private ObjectMapper objectMapper;
 
-    // [미션 14] ④ 각 테스트 메서드 "전에" 매번 실행
+    @___   // [미션 14] ④ 각 테스트 메서드 "전에" 매번 실행
     public void mockMvcSetup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .build();
@@ -389,7 +407,7 @@ class BlogApiControllerTest {
                 .content(requestBody));
 
         // then
-        result.andExpect(status().isOk());   // [미션 14] ⑤ 생성 성공에 맞는 상태 코드를 기대하도록
+        result.andExpect(status().___());   // [미션 14] ⑤ 201 을 기대하는 메서드
 
         List<Article> articles = blogRepository.findAll();
 
@@ -398,7 +416,7 @@ class BlogApiControllerTest {
         assertThat(articles.get(0).getContent()).isEqualTo(content);
     }
 
-    // [미션 14] ⑥ 테스트 전에 "/test-db.sql" 을 실행해 글 3개를 넣는 어노테이션
+    @___("/test-db.sql")   // [미션 14] ⑥ 테스트 전에 SQL 파일 실행
     @Test
     public void findAllArticles() throws Exception {
         final String title = "제목 1";
@@ -413,7 +431,7 @@ class BlogApiControllerTest {
                 .andExpect(jsonPath("$[0].title").value(title));
     }
 
-    // [미션 14] ⑦ 위 ⑥ 과 같은 어노테이션
+    @___("/test-db.sql")   // [미션 14] ⑦ 위와 같음
     @Test
     public void findArticle() throws Exception {
         final String url = "/api/articles/1";
@@ -436,10 +454,10 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// [미션 15] ① JPA 관련 빈(리포지토리 · 엔티티)만 띄우는 슬라이스 테스트
+@___   // [미션 15] ① JPA 관련 빈(엔티티 · 리포지토리)만 띄우는 슬라이스 테스트
 class BlogRepositoryTest {
 
-    // [미션 15] ② 리포지토리 주입
+    @___   // [미션 15] ② 리포지토리 주입
     BlogRepository blogRepository;
 
     @Test
@@ -453,7 +471,7 @@ class BlogRepositoryTest {
 
         // then
         assertThat(saved.getId()).isNotNull();
-        assertThat(blogRepository.findById(saved.getId())).isPresent();   // [미션 15] ③ Optional 에 값이 "있는지" 검증하는 메서드인지 확인만 하세요
+        assertThat(blogRepository.findById(saved.getId())).___();   // [미션 15] ③ Optional 에 값이 "있는지" 검증
     }
 }
 `,
@@ -507,7 +525,7 @@ Content-Type: application/json
 ### 5. 글 삭제 — 200, 그다음 2번으로 정말 사라졌는지 확인  (미션 7)
 DELETE http://localhost:8080/api/articles/1
 
-### 6. 책 목록 — 200 + JSON 배열 (5장 실습)  (미션 17)
+### 6. 책 목록 — 200 + JSON 배열 (5장 실습)
 GET http://localhost:8080/books
 `,
 };

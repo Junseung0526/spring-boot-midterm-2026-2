@@ -51,7 +51,7 @@ function lines(text, name, errs) {
   const out = byName(name)(text);
   if (errs) for (const [ln, msg] of errs) {
     if (out[ln - 1] === undefined) continue;
-    out[ln - 1] = out[ln - 1].replace(/^(\s*)([\s\S]*)$/, (m, ws, rest) => `${ws}<span class="err" title="${escAttr(msg)}">${rest || ' '}</span>`);
+    out[ln - 1] = out[ln - 1].replace(/^(\s*)([\s\S]*)$/, (m, ws, rest) => `${ws}<span class="${/^빈칸/.test(msg) ? 'err blank' : 'err'}" title="${escAttr(msg)}">${rest || ' '}</span>`);
   }
   return out;
 }

@@ -16,7 +16,7 @@ function create(host, hooks) {
     const lines = highlight.lines(ta.value, file, errs);
     hl.innerHTML = lines.map(l => l || ' ').join('\n') + '\n ';
     gut.innerHTML = lines.map((_, i) => {
-      const n = i + 1, e = errs.has(n) ? '<i class="gerr" title="' + highlight.escAttr(errs.get(n)) + '"></i>' : '';
+      const n = i + 1, e = errs.has(n) ? '<i class="' + (/^빈칸/.test(errs.get(n)) ? 'gerr gblank' : 'gerr') + '" title="' + highlight.escAttr(errs.get(n)) + '"></i>' : '';
       return `<div class="gl">${(() => { const rl = runLines.find(x => x.line === n); return rl ? `<b class="grun ${rl.state || ''}" data-line="${n}" title="${highlight.escAttr(rl.title || '실행')}">${{ pass: '✔', fail: '✖', skip: '⚠' }[rl.state] || '▶'}</b>` : ''; })()}${e}<span>${n}</span></div>`;
     }).join('');
     ta.style.height = hl.offsetHeight + 'px';

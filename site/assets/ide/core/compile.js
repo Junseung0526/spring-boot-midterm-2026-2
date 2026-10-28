@@ -11,7 +11,7 @@ function javaProblems(model) {
     const nostr = u.text.replace(/"(?:[^"\\\n]|\\.)*"/g, m => '"' + ' '.repeat(m.length - 2) + '"');
     for (const m of nostr.matchAll(/@([A-Za-z_][\w.]*)/g)) {
       const name = m[1];
-      if (name.includes('.') || JAVA_LANG_ANN.has(name) || name === 'interface') continue;
+      if (name.includes('.') || JAVA_LANG_ANN.has(name) || name === 'interface' || name === '___') continue;   // @___ 는 실습 빈칸: 아직 안 채운 것 = 어노테이션이 없는 것
       if (model.types.has(name)) continue;
       const pkg = ANN_PKG[name], line = u.lineOf(m.index);
       if (!pkg) { add(u, line, `Cannot resolve symbol '${name}'`); continue; }
@@ -35,7 +35,7 @@ function javaProblems(model) {
         for (const lv of m.body.matchAll(/\b([A-Z]\w*)(?:<[^>;=]*>)?\s+(\w+)\s*=/g)) vars.set(lv[2], lv[1]);
         for (const c of m.body.matchAll(/\b([a-z]\w*)\.(\w+)\s*\(/g)) {
           const T = model.types.get(simple(vars.get(c[1]) || ''));
-          if (!T || T === t && c[1] === 'this') continue;
+          if (!T || T === t && c[1] === 'this' || c[2] === '___') continue;   // 실습 빈칸
           if (!hasMethod(model, T, c[2])) add(u, u.lineOf(m.bodyOff + c.index), `Cannot resolve method '${c[2]}' in '${T.name}'`);
         }
       }

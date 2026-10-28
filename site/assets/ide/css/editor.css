@@ -54,3 +54,5 @@
 /* Git 상태 색상: 수정 = 파랑, 신규 = 초록 (IntelliJ 와 동일한 규칙) */
 .tr.gm .nm, .tab.gm > span:not(.fi) { color: #6f9bf2; } .tr.ga .nm, .tab.ga > span:not(.fi) { color: #62b543; }
 .tr.on.gm .nm, .tr.on.ga .nm { color: #fff; }
+.gl .gerr.gblank { background: #e0b341; }
+.hl .err.blank { text-decoration-color: #e0b341; background: #e0b34112; }

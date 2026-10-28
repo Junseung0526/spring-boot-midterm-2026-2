@@ -2,7 +2,7 @@
    1) 데이터 파일이 약속한 상수를 정확히 하나씩 정의하는지
    2) 모든 애니메이션 단계의 on[] id 가 해당 SVG 안에 실제로 존재하는지
    3) 개념별 이해 확인 퀴즈에 쓸 문제가 있는지
-   4) 실습 엔진: 시작 코드는 미통과, 정답 코드는 기동 + 20개 미션(빈칸 11 · 해석 9) 통과 + 함정(변경 감지·readOnly·defer·final) */
+   4) 실습 엔진: 시작 코드는 미통과, 정답 코드는 기동 + 19개 미션(빈칸 10 · 해석 9) 통과 + 함정(변경 감지·readOnly·defer·final) */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const root = path.join(__dirname, '..', 'site', 'assets');
 const ctx = vm.createContext({ console, globalThis: null, localStorage: undefined });
@@ -58,6 +58,9 @@ const js = r => { try { return JSON.parse(r.body); } catch { return null; } };
 const ADD = '{"title":"t","content":"c"}', PUT = '{"title":"바뀜","content":"x"}';
 const starter = E.boot({ ...E.STARTER });
 ok(!starter.ok, '시작 코드: 빈칸(getter · 리포지토리 상속)이 비어 있어 컴파일 오류로 기동 실패');
+ok(!Object.values(E.STARTER).some(t => /orElse\(null\)|HttpStatus\.OK|status\(\)\.isOk\(\);\s*\/\/ \[미션|blog\.services\.\.|^-- insert/m.test(t)), '시작 코드: 틀린 코드를 고치는 문항이 없음 (모든 문항은 ___ 빈칸)');
+{ const f = { ...E.STARTER }; [ART, J + 'repository/BlogRepository.java', J + 'dto/AddArticleRequest.java', J + 'dto/ArticleResponse.java'].forEach(p => { f[p] = E.SOLUTIONS[p]; });
+  ok(E.boot(f).ok, '미션 1 · 3 · 4 만 채워도 앱이 뜸 (뒤 미션의 ___ 빈칸은 기동을 막지 않음)'); }
 const t0 = E.runTests({ ...E.STARTER });
 ok(t0.build, '시작 코드의 테스트: 빈칸 때문에 컴파일 실패');
 const boot = E.boot(sol);
@@ -75,11 +78,11 @@ const withFiles = extra => { const b = E.boot({ ...sol, ...extra }); return b.ok
   ok(js(http(c, 'GET', '/api/articles/1')).title === '바뀜', 'HTTP: @Transactional + 변경 감지로 수정 반영');
   ok(http(c, 'DELETE', '/api/articles/1').status === 200 && js(http(c, 'GET', '/api/articles')).length === 0, 'HTTP: DELETE → 200, 목록에서 사라짐');
   ok(js(http(c, 'GET', '/books')).length === 2, 'HTTP: 두 번째 엔티티(Book) 테이블도 동작');
-  const noTx = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional   //', '    //') });
+  const noTx = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional\n    public Article update', '    public Article update') });
   if (noTx) { http(noTx, 'POST', '/api/articles', ADD); http(noTx, 'PUT', '/api/articles/1', PUT); ok(js(http(noTx, 'GET', '/api/articles/1')).title === 't', '함정: 트랜잭션 없이 엔티티만 바꾸면 DB 에 반영되지 않음'); } else ok(false, 'noTx 기동');
-  const ro = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)').replace('    @Transactional   //', '    //') });
+  const ro = withFiles({ [SVC]: E.SOLUTIONS[SVC].replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)').replace('    @Transactional\n    public Article update', '    public Article update') });
   if (ro) { http(ro, 'POST', '/api/articles', ADD); http(ro, 'PUT', '/api/articles/1', PUT); ok(js(http(ro, 'GET', '/api/articles/1')).title === 't', '함정: 클래스 readOnly 를 update 가 덮어쓰지 않으면 반영되지 않음'); } else ok(false, 'ro 기동');
-  const nodefer = E.boot({ ...sol, [YAML]: E.STARTER[YAML] });
+  const nodefer = E.boot({ ...sol, [YAML]: E.STARTER[YAML].replace(/  jpa:\n.*\n/, '') });
   ok(!nodefer.ok && /BOOK/.test(nodefer.failure?.desc || ''), '함정: defer-datasource-initialization 없이 book insert 를 풀면 Table "BOOK" not found');
   const noCtor = E.boot({ ...sol, [ART]: E.SOLUTIONS[ART].replace('@NoArgsConstructor(access = AccessLevel.PROTECTED)\n', '') });
   ok(!noCtor.ok && /default constructor/i.test(noCtor.failure?.desc || noCtor.failure?.cause || ''), '함정: 엔티티에 기본 생성자가 없으면 기동 실패');
@@ -95,14 +98,14 @@ const autoRun = (files, m) => {
 };
 const M = id => E.MISSIONS.find(m => m.id === id);
 const blanks = E.MISSIONS.filter(m => m.kind === 'blank'), quizzes = E.MISSIONS.filter(m => m.kind === 'quiz');
-ok(E.MISSIONS.length === 20 && blanks.length === 11 && quizzes.length === 9, `미션 ${E.MISSIONS.length}개 (빈칸 ${blanks.length} · 해석 ${quizzes.length})`);
+ok(E.MISSIONS.length === 19 && blanks.length === 10 && quizzes.length === 9, `미션 ${E.MISSIONS.length}개 (빈칸 ${blanks.length} · 해석 ${quizzes.length})`);
 ok(blanks.every(m => m.auto && (m.auto.static || m.auto.requests || m.auto.tests)), '모든 빈칸 미션에 자동 채점 시나리오(auto)가 있음');
 E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
 blanks.forEach(m => ok(autoRun(sol, m).ok, `자동 채점: 정답 코드로 미션 ${m.id} (${m.title}) 통과`));
 blanks.forEach(m => ok(!autoRun({ ...E.STARTER }, m).ok, `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
 /* 순서대로 풀면 각 미션이 그 시점에 통과한다 (앞 미션의 정답 파일만 적용한 상태) */
 {
-  const order = { m1: [ART, J + 'dto/ArticleResponse.java'], m3: [J + 'repository/BlogRepository.java'], m4: [J + 'dto/AddArticleRequest.java', J + 'dto/ArticleResponse.java'], m5: [SVC], m7: [J + 'controller/BlogApiController.java'], m8: [], m11: [], m14: [CTT], m15: [RT], m17: ['src/main/resources/data.sql', YAML], m19: [J + 'aop/LogAspect.java'] };
+  const order = { m1: [ART, J + 'dto/ArticleResponse.java'], m3: [J + 'repository/BlogRepository.java'], m4: [J + 'dto/AddArticleRequest.java', J + 'dto/ArticleResponse.java'], m5: [SVC], m7: [J + 'controller/BlogApiController.java'], m8: [], m11: [], m14: [CTT], m15: [RT], m18: [J + 'aop/LogAspect.java'] };
   let cur = { ...E.STARTER };
   for (const m of blanks) { order[m.id].forEach(p => { cur[p] = E.SOLUTIONS[p]; }); ok(autoRun(cur, m).ok, `순서대로 풀기: 미션 ${m.id} 시점에 통과`); }
 }
@@ -118,7 +121,7 @@ const orElseNull = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('.orElseThrow(() ->
 ok(orElseNull[SVC] !== E.SOLUTIONS[SVC] && !autoRun(orElseNull, M('m5')).ok, '미션 5: orElse(null) 이면 불합격');
 const ok200 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('HttpStatus.CREATED', 'HttpStatus.OK') };
 ok(!autoRun(ok200, M('m8')).ok && !autoRun(ok200, M('m14')).ok, '미션 8 · 14: POST 가 200 이면 불합격 (테스트 isCreated 도 실패)');
-const noTx = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional   //', '    //') };
+const noTx = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional\n    public Article update', '    public Article update') };
 ok(!autoRun(noTx, M('m11')).ok, '미션 11: update 에 트랜잭션이 없으면 불합격');
 const classRO = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace(/@Transactional\(readOnly = true\)\n    /g, '').replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)') };
 ok(autoRun(classRO, M('m11')).ok, '미션 11: 클래스 readOnly + update 만 @Transactional 도 정답');
@@ -132,7 +135,7 @@ const dctx = (files, extra = {}) => ({ files, session: { responses: [], tests: n
 const d0 = dctx({ ...E.STARTER });
 ok(blanks.every(m => /빈칸/.test(m.diagnose(d0)[0] || '')), '시작 코드: 모든 빈칸 미션이 남은 빈칸을 알려 줌');
 ok(blanks.every(m => !/@(Service|PathVariable|RequestBody|Entity|Id|Transactional\(|Component|NoArgsConstructor)\b|return\s+\w+\.\w+\(/.test(m.diagnose(d0).join(' '))), '진단 문구에 정답 코드(어노테이션 이름·return 문)가 없음');
-const half = { ...E.STARTER, [ART]: E.STARTER[ART].replace('public class Article {', '@Entity\n@Getter\npublic class Article {') };
+const half = { ...E.STARTER, [ART]: E.STARTER[ART].replace('@___   // [미션 1] ①', '@Entity   // [미션 1] ①').replace('@___   // [미션 1] ②', '@Getter   // [미션 1] ②') };
 ok(/③/.test(M('m1').diagnose(dctx(half))[0]) && !/①/.test(M('m1').diagnose(dctx(half))[0]), '진단: 채운 빈칸은 빼고 남은 번호만 안내');
 ok(/Run/.test(M('m3').diagnose(dctx(sol))[0]), '진단: 빈칸을 다 채우고 앱이 꺼져 있으면 Run 안내');
 
