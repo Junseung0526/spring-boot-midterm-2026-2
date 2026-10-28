@@ -21,7 +21,7 @@ welcome: `<h1>스프링부트4 실습</h1>
 </div>
 <h3>직접 해 보기</h3>
 <div class="wcards">
-  <a data-open="src/main/java/com/example/blog/domain/Article.java" class="act"><i>▶</i><b>미션 시작</b><span>오른쪽 Tasks 의 12개 미션 — 서비스·DTO·엔티티까지 직접 작성해요</span></a>
+  <a data-open="src/main/java/com/example/blog/domain/Article.java" class="act"><i>▶</i><b>미션 시작</b><span>오른쪽 Tasks 의 20개 미션 — 시험처럼 빈칸 채우기와 코드 해석</span></a>
   <a data-memo="ann" class="act"><i></i><b>어노테이션 암기</b><span>카드 · 객관식 · 빈칸 입력 · 목록</span></a>
   <a data-memo="exam" class="act"><i></i><b>모의고사</b><span>오답노트 자동 저장</span></a>
 </div>

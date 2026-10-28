@@ -89,3 +89,6 @@
 
 .donetoggle { justify-content: space-between; } .donetoggle .tgl { color: #8fb69a; font-size: 11.5px; }
 .lockedhint { color: var(--dim); font-size: 11.5px; list-style: none; margin: 2px 0 0; }
+.qin { width: 100%; box-sizing: border-box; margin: 6px 0 2px; padding: 7px 9px; resize: vertical; background: var(--editor); color: inherit; border: 1px solid #3c3f44; border-radius: 6px; font: 12.5px/1.5 inherit; }
+.qin:focus { outline: none; border-color: var(--accent); }
+.qa { margin: 6px 0 0; padding: 7px 10px; border-radius: 8px; background: #26303d; line-height: 1.6; font-size: 12px; } .qa b { margin-right: 4px; }

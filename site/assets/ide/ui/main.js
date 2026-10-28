@@ -71,7 +71,7 @@ bus.on('graded', kind => setTimeout(() => {
   if (d) con.line(`미션 ${cur.id.slice(1)} (${IDE.highlight.esc(cur.title)}) 아직 미완 — ${IDE.highlight.esc(d)}`, 'hint');
 }, 80));
 bus.on('tabs', showActive);
-bus.on('reload', showActive);
+bus.on('reload', () => { IDE.analysis.run(); showActive(); });   // 정답 적용 등 에디터 밖에서 바뀐 코드도 Problems 를 다시 계산
 bus.on('reset', () => { if (state.server.running) runner.stop(true); con.clear(); IDE.analysis.run(); showActive(); });
 bus.on('problems', () => {
   decorate();

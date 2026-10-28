@@ -2,7 +2,7 @@
    1) 데이터 파일이 약속한 상수를 정확히 하나씩 정의하는지
    2) 모든 애니메이션 단계의 on[] id 가 해당 SVG 안에 실제로 존재하는지
    3) 개념별 이해 확인 퀴즈에 쓸 문제가 있는지
-   4) 실습 엔진: 시작 코드는 미통과, 정답 코드는 기동 + 12개 미션 통과 + 함정(변경 감지·readOnly·defer·변이 검사) */
+   4) 실습 엔진: 시작 코드는 미통과, 정답 코드는 기동 + 20개 미션(빈칸 11 · 해석 9) 통과 + 함정(변경 감지·readOnly·defer·final) */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const root = path.join(__dirname, '..', 'site', 'assets');
 const ctx = vm.createContext({ console, globalThis: null, localStorage: undefined });
@@ -57,13 +57,13 @@ const http = (ctx, m, u, b) => E.handle(ctx, { method: m, url: 'http://localhost
 const js = r => { try { return JSON.parse(r.body); } catch { return null; } };
 const ADD = '{"title":"t","content":"c"}', PUT = '{"title":"바뀜","content":"x"}';
 const starter = E.boot({ ...E.STARTER });
-ok(starter.ok && http(starter.ctx, 'GET', '/api/articles').status === 404, '시작 코드: 빈 클래스뿐이라 기동은 되지만 API 는 404');
+ok(!starter.ok, '시작 코드: 빈칸(getter · 리포지토리 상속)이 비어 있어 컴파일 오류로 기동 실패');
 const t0 = E.runTests({ ...E.STARTER });
-ok(t0.build, '시작 코드의 제공 테스트: 리포지토리 · DTO 가 비어 있어 컴파일 실패');
+ok(t0.build, '시작 코드의 테스트: 빈칸 때문에 컴파일 실패');
 const boot = E.boot(sol);
 ok(boot.ok, '정답 코드: 기동 성공');
 const t1 = E.runTests(sol);
-ok(!t1.build && t1.summary.fail === 0 && t1.summary.skip === 0 && t1.summary.pass >= 8, `정답 코드의 테스트 전부 통과 (실제 ${t1.summary && t1.summary.pass}/${t1.results.length})`);
+ok(!t1.build && t1.summary.fail === 0 && t1.summary.skip === 0 && t1.summary.pass >= 5, `정답 코드의 테스트 전부 통과 (실제 ${t1.summary && t1.summary.pass}/${t1.results.length})`);
 const withFiles = extra => { const b = E.boot({ ...sol, ...extra }); return b.ok ? b.ctx : null; };
 {
   const c = boot.ctx;
@@ -91,50 +91,50 @@ const autoRun = (files, m) => {
   if (m.auto.requests) { const b = E.boot(files); fresh.started = b.ok;
     if (b.ok) for (const q of m.auto.requests) { const x = http(b.ctx, q.method, q.path, q.body); fresh.responses.push({ method: q.method, path: q.path, status: x.status, body: x.body, reqBody: q.body, exception: x.exception }); if (x.aspectHit) fresh.aspectHit = true; if (x.txHit) fresh.txHit = true; } }
   if (m.auto.tests) fresh.tests = E.runTests(files);
-  if (m.auto.mutants) { fresh.mutants = {}; for (const mu of m.auto.mutants) fresh.mutants[mu] = E.runTests(files, null, { mutant: mu }); }
   return { ok: !!m.check(fresh, files), fresh };
 };
-ok(E.MISSIONS.length === 12, `미션 ${E.MISSIONS.length}개`);
-ok(E.MISSIONS.every(m => m.auto && (m.auto.requests || m.auto.tests)), '모든 미션에 자동 채점 시나리오(auto)가 있음');
+const M = id => E.MISSIONS.find(m => m.id === id);
+const blanks = E.MISSIONS.filter(m => m.kind === 'blank'), quizzes = E.MISSIONS.filter(m => m.kind === 'quiz');
+ok(E.MISSIONS.length === 20 && blanks.length === 11 && quizzes.length === 9, `미션 ${E.MISSIONS.length}개 (빈칸 ${blanks.length} · 해석 ${quizzes.length})`);
+ok(blanks.every(m => m.auto && (m.auto.static || m.auto.requests || m.auto.tests)), '모든 빈칸 미션에 자동 채점 시나리오(auto)가 있음');
 E.MISSIONS.forEach(m => ok((E.STARTER[m.target.file] || '').includes(m.target.find), `미션 ${m.id} 위치 마커 "${m.target.find}" 가 시작 코드에 있음`));
-E.MISSIONS.forEach(m => ok(autoRun(sol, m).ok, `자동 채점: 정답 코드로 미션 ${m.id} (${m.title}) 통과`));
-E.MISSIONS.forEach(m => ok(!autoRun({ ...E.STARTER }, m).ok, `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
+blanks.forEach(m => ok(autoRun(sol, m).ok, `자동 채점: 정답 코드로 미션 ${m.id} (${m.title}) 통과`));
+blanks.forEach(m => ok(!autoRun({ ...E.STARTER }, m).ok, `자동 채점: 시작 코드로는 미션 ${m.id} 통과하지 않음`));
+/* 순서대로 풀면 각 미션이 그 시점에 통과한다 (앞 미션의 정답 파일만 적용한 상태) */
+{
+  const order = { m1: [ART, J + 'dto/ArticleResponse.java'], m3: [J + 'repository/BlogRepository.java'], m4: [J + 'dto/AddArticleRequest.java', J + 'dto/ArticleResponse.java'], m5: [SVC], m7: [J + 'controller/BlogApiController.java'], m8: [], m11: [], m14: [CTT], m15: [RT], m17: ['src/main/resources/data.sql', YAML], m19: [J + 'aop/LogAspect.java'] };
+  let cur = { ...E.STARTER };
+  for (const m of blanks) { order[m.id].forEach(p => { cur[p] = E.SOLUTIONS[p]; }); ok(autoRun(cur, m).ok, `순서대로 풀기: 미션 ${m.id} 시점에 통과`); }
+}
+quizzes.forEach(m => { ok(E.gradeAnswer(m, m.quiz.answer).ok, `해석 ${m.id}: 모범 답안은 정답`); ok(!E.gradeAnswer(m, '잘 모르겠습니다').ok && !E.gradeAnswer(m, '').ok, `해석 ${m.id}: 엉뚱한 답 · 빈 답은 오답`); });
+ok(E.gradeAnswer(M('m12'), '더티 체킹 때문이고 트랜잭션 커밋할 때 UPDATE').ok, '해석: 띄어쓰기가 달라도 핵심어가 있으면 정답');
+ok(!E.gradeAnswer(M('m13'), '바뀐다. flush 되니까').ok, '해석: 결론이 틀리면 이유를 써도 오답');
+ok(!E.gradeAnswer(M('m9'), '리포지토리 → 서비스 → 컨트롤러').ok && E.gradeAnswer(M('m9'), 'Controller -> Service -> Repository').ok, '해석: 순서를 묻는 문제는 순서까지 채점');
 
 /* 미션별 함정: 그럴듯하지만 틀린 코드는 통과하지 않는다 */
-const M = id => E.MISSIONS.find(m => m.id === id);
-const viaSave = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('article.update(request.getTitle(), request.getContent());', 'article.update(request.getTitle(), request.getContent());\n        blogRepository.save(article);') };
-ok(viaSave[SVC] !== E.SOLUTIONS[SVC] && !autoRun(viaSave, M('m6')).ok, '미션 6: update 에서 save() 를 부르면 불합격');
+const notFinal = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('private final BlogRepository', 'private BlogRepository') };
+ok(!autoRun(notFinal, M('m5')).ok, '미션 5: final 이 없으면(주입 안 됨) 불합격');
 const orElseNull = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('.orElseThrow(() -> new IllegalArgumentException("not found: " + id));\n    }\n\n    public void', '.orElse(null);\n    }\n\n    public void') };
-ok(orElseNull[SVC] !== E.SOLUTIONS[SVC] && !autoRun(orElseNull, M('m4')).ok, '미션 4: orElse(null) 이면 불합격');
-const ok200 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('return ResponseEntity.status(HttpStatus.CREATED).body(', 'return ResponseEntity.ok().body(') };
-ok(!autoRun(ok200, M('m2')).ok, '미션 2: POST 가 200 이면 불합격 (제공 테스트 isCreated)');
-const del204 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('blogService.delete(id);\n        return ResponseEntity.ok().build();', 'blogService.delete(id);\n        return ResponseEntity.noContent().build();') };
-ok(autoRun(del204, M('m5')).ok, '미션 5: 204 No Content 로 만들어도 정답');
-const recDto = { ...sol, [J + 'dto/AddArticleRequest.java']: 'package com.example.blog.dto;\n\nimport com.example.blog.domain.Article;\n\npublic record AddArticleRequest(String title, String content) {\n    public Article toEntity() {\n        return new Article(title, content);\n    }\n}\n' };
-ok(autoRun(recDto, M('m2')).ok, '미션 2: 요청 DTO 를 record 로 만들어도 정답 (Lombok 강제 안 함)');
-const noRO = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace(/@Transactional\(readOnly = true\)\n    /g, '') };
-ok(!autoRun(noRO, M('m7')).ok, '미션 7: 조회 메서드에 readOnly 가 없으면 불합격');
-const classRO = { ...sol, [SVC]: noRO[SVC].replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)') };
-ok(autoRun(classRO, M('m7')).ok, '미션 7: 클래스 readOnly + update 만 @Transactional 도 정답');
-const weakDel = { ...sol, [CTT]: E.SOLUTIONS[CTT].replace('        // then\n        List<Article> articles = blogRepository.findAll();\n        assertThat(articles).isEmpty();\n', '') };
-const r8 = autoRun(weakDel, M('m8'));
-ok(weakDel[CTT] !== E.SOLUTIONS[CTT] && !r8.ok, '미션 8: 상태 코드만 보는 삭제 테스트는 불합격 (변이 검사)');
-ok(/리포지토리/.test(M('m8').diagnose({ files: weakDel, session: r8.fresh, server: { running: false, dirty: false }, problems: [], tests: r8.fresh.tests })[0] || ''), '진단: 변이에서 살아남은 삭제 테스트를 지적');
-const weakUpd = { ...sol, [CTT]: E.SOLUTIONS[CTT].replace('        result.andExpect(status().isOk());\n\n        Article updatedArticle = blogRepository.findById(savedArticle.getId()).orElseThrow();\n        assertThat(updatedArticle.getTitle()).isEqualTo(newTitle);\n        assertThat(updatedArticle.getContent()).isEqualTo(newContent);', '        result.andExpect(status().isOk())\n                .andExpect(jsonPath("$.title").value(newTitle));') };
-ok(weakUpd[CTT] !== E.SOLUTIONS[CTT] && !autoRun(weakUpd, M('m9')).ok, '미션 9: 응답 JSON 만 보는 수정 테스트는 불합격 (변경 감지 꺼도 통과하므로)');
-const weakRepo = { ...sol, [RT]: E.SOLUTIONS[RT].replace(/    @Test\n    @DisplayName\("전체 조회"\)[\s\S]*?\n    }\n/, '').replace('assertThat(blogRepository.findById(saved.getId())).isPresent();', '') };
-ok(!autoRun(weakRepo, M('m10')).ok, '미션 10: 저장한 것을 다시 조회해 검증하지 않는 약한 테스트는 불합격 (변이 검사)');
+ok(orElseNull[SVC] !== E.SOLUTIONS[SVC] && !autoRun(orElseNull, M('m5')).ok, '미션 5: orElse(null) 이면 불합격');
+const ok200 = { ...sol, [J + 'controller/BlogApiController.java']: E.SOLUTIONS[J + 'controller/BlogApiController.java'].replace('HttpStatus.CREATED', 'HttpStatus.OK') };
+ok(!autoRun(ok200, M('m8')).ok && !autoRun(ok200, M('m14')).ok, '미션 8 · 14: POST 가 200 이면 불합격 (테스트 isCreated 도 실패)');
+const noTx = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace('    @Transactional   //', '    //') };
+ok(!autoRun(noTx, M('m11')).ok, '미션 11: update 에 트랜잭션이 없으면 불합격');
+const classRO = { ...sol, [SVC]: E.SOLUTIONS[SVC].replace(/@Transactional\(readOnly = true\)\n    /g, '').replace('@RequiredArgsConstructor\n@Service', '@RequiredArgsConstructor\n@Service\n@Transactional(readOnly = true)') };
+ok(autoRun(classRO, M('m11')).ok, '미션 11: 클래스 readOnly + update 만 @Transactional 도 정답');
+const noSql = { ...sol, [CTT]: E.SOLUTIONS[CTT].replace('    @Sql("/test-db.sql")\n', '') };
+ok(!autoRun(noSql, M('m14')).ok, '미션 14: @Sql 하나를 빼면 불합격');
+const recDto = { ...sol, [J + 'dto/AddArticleRequest.java']: 'package com.example.blog.dto;\n\nimport com.example.blog.domain.Article;\n\npublic record AddArticleRequest(String title, String content) {\n    public Article toEntity() {\n        return Article.builder().title(title).content(content).build();\n    }\n}\n' };
+ok(autoRun(recDto, M('m4')).ok, '미션 4: 요청 DTO 를 record 로 바꿔도 정답');
 
-/* 현재 코드 진단: 시작 코드에서 모든 미션이 구체적인 진단을 내고, 코드는 알려 주지 않는다 */
+/* 현재 코드 진단: 시작 코드에서 빈칸 미션이 구체적인 진단을 내고, 코드는 알려 주지 않는다 */
 const dctx = (files, extra = {}) => ({ files, session: { responses: [], tests: null }, server: { running: false, dirty: false }, problems: E.javaProblems(E.buildModel(files)), tests: null, ...extra });
 const d0 = dctx({ ...E.STARTER });
-ok(E.MISSIONS.every(m => (m.diagnose(d0)[0] || '').length > 10), '시작 코드: 모든 미션이 구체적인 진단 문구를 냄');
-ok(E.MISSIONS.every(m => !/@(Service|PathVariable|RequestBody|Entity|Id|Transactional\(|Component|NoArgsConstructor)\b|return\s+\w+\.\w+\(/.test(m.diagnose(d0).join(' '))), '진단 문구에 정답 코드(어노테이션 이름·return 문)가 없음');
-ok(/엔티티|테이블/.test(M('m1').diagnose(d0)[0]), '진단: 시작 코드에서는 엔티티 표시부터 안내');
-const entOnly = { ...E.STARTER, [ART]: E.STARTER[ART].replace('public class Article {', '@jakarta.persistence.Entity\npublic class Article {') };
-ok(/기본 키|PK/.test(M('m1').diagnose(dctx(entOnly))[0]), '진단: @Entity 만 있으면 @Id 를 안내');
-ok(/Run/.test(M('m1').diagnose(dctx(sol))[0]), '진단: 코드가 맞고 앱이 꺼져 있으면 Run 안내');
-ok(/Rerun/.test(M('m1').diagnose(dctx(sol, { server: { running: true, dirty: true } }))[0]), '진단: 앱 실행 중 코드가 바뀌면 Rerun 안내');
+ok(blanks.every(m => /빈칸/.test(m.diagnose(d0)[0] || '')), '시작 코드: 모든 빈칸 미션이 남은 빈칸을 알려 줌');
+ok(blanks.every(m => !/@(Service|PathVariable|RequestBody|Entity|Id|Transactional\(|Component|NoArgsConstructor)\b|return\s+\w+\.\w+\(/.test(m.diagnose(d0).join(' '))), '진단 문구에 정답 코드(어노테이션 이름·return 문)가 없음');
+const half = { ...E.STARTER, [ART]: E.STARTER[ART].replace('public class Article {', '@Entity\n@Getter\npublic class Article {') };
+ok(/③/.test(M('m1').diagnose(dctx(half))[0]) && !/①/.test(M('m1').diagnose(dctx(half))[0]), '진단: 채운 빈칸은 빼고 남은 번호만 안내');
+ok(/Run/.test(M('m3').diagnose(dctx(sol))[0]), '진단: 빈칸을 다 채우고 앱이 꺼져 있으면 Run 안내');
 
 /* 직접 만든 새 파일도 실행된다 */
 const own = { ...sol, [J + 'controller/HelloController.java']: `package com.example.blog.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\n@RestController\n@RequestMapping("/api/hellos")\npublic class HelloController {\n\n    @GetMapping\n    public String hello() {\n        return "hello";\n    }\n}\n` };

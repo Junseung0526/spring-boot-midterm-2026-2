@@ -1,5 +1,5 @@
 /* project/solutions.js — 최종 정답. 시작 코드에서 [찾을 문자열, 바꿀 문자열] 을 순서대로 치환한다.
-   (못 찾으면 즉시 오류 → 시작 코드와 정답이 어긋나는 것을 막는다) 새로 만드는 파일(ArticleResponse, Book …, BlogRepositoryTest)과 뼈대뿐인 파일은 통째로 적는다. */
+   (못 찾으면 즉시 오류 → 시작 코드와 정답이 어긋나는 것을 막는다) 빈칸이 많은 파일은 통째로 적는다. */
 (() => {
 'use strict';
 const IDE = (globalThis.IDE ??= {});
@@ -17,7 +17,6 @@ const YAML = 'src/main/resources/application.yaml';
 const CTRL_TEST = TT + 'controller/BlogApiControllerTest.java';
 
 const SOLUTIONS = {
-  /* 미션 1 엔티티 · 미션 6 update() */
   [ARTICLE]: `package com.example.blog.domain;
 
 import jakarta.persistence.*;
@@ -51,7 +50,6 @@ public class Article {
     }
 }
 `,
-  /* 미션 1 리포지토리 */
   [REPO]: `package com.example.blog.repository;
 
 import com.example.blog.domain.Article;
@@ -60,7 +58,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface BlogRepository extends JpaRepository<Article, Long> {
 }
 `,
-  /* 미션 2 요청 DTO */
   [J + 'dto/AddArticleRequest.java']: `package com.example.blog.dto;
 
 import com.example.blog.domain.Article;
@@ -84,7 +81,6 @@ public class AddArticleRequest {
     }
 }
 `,
-  /* 미션 3 응답 DTO (새 파일) */
   [J + 'dto/ArticleResponse.java']: `package com.example.blog.dto;
 
 import com.example.blog.domain.Article;
@@ -104,23 +100,6 @@ public class ArticleResponse {
     }
 }
 `,
-  /* 미션 6 수정 요청 DTO (새 파일) */
-  [J + 'dto/UpdateArticleRequest.java']: `package com.example.blog.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-public class UpdateArticleRequest {
-
-    private String title;
-    private String content;
-}
-`,
-  /* 미션 2~6 서비스 · 미션 7 readOnly */
   [SERVICE]: `package com.example.blog.service;
 
 import com.example.blog.domain.Article;
@@ -167,7 +146,6 @@ public class BlogService {
     }
 }
 `,
-  /* 미션 2~6 컨트롤러 */
   [CONTROLLER]: `package com.example.blog.controller;
 
 import com.example.blog.domain.Article;
@@ -224,57 +202,17 @@ public class BlogApiController {
     }
 }
 `,
-  /* 미션 8 · 9: 삭제 · 수정 테스트를 직접 작성 */
   [CTRL_TEST]: patch(CTRL_TEST, [
-    ['import com.example.blog.dto.AddArticleRequest;', 'import com.example.blog.dto.AddArticleRequest;\nimport com.example.blog.dto.UpdateArticleRequest;'],
-    ['import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;', 'import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;\nimport static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;'],
-    ['import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;', 'import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;\nimport static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;'],
-    ['    // TODO 미션 8: deleteArticle 테스트를 given-when-then 으로 직접 작성하세요\n    //   then: 응답 상태 코드 + 리포지토리에서 정말 사라졌는지 둘 다 검증\n\n    // TODO 미션 9: updateArticle 테스트를 직접 작성하세요\n    //   then: 응답 상태 코드 + 리포지토리에서 다시 꺼낸 글이 바뀌었는지 검증\n', `    @Test
-    public void deleteArticle() throws Exception {
-        // given
-        final String url = "/api/articles/{id}";
-        Article savedArticle = blogRepository.save(Article.builder()
-                .title("삭제할 제목")
-                .content("삭제할 내용")
-                .build());
-
-        // when
-        mockMvc.perform(delete(url, savedArticle.getId()))
-                .andExpect(status().isOk());
-
-        // then
-        List<Article> articles = blogRepository.findAll();
-        assertThat(articles).isEmpty();
-    }
-
-    @Test
-    public void updateArticle() throws Exception {
-        // given
-        final String url = "/api/articles/{id}";
-        Article savedArticle = blogRepository.save(Article.builder()
-                .title("원래 제목")
-                .content("원래 내용")
-                .build());
-
-        final String newTitle = "수정된 새 제목";
-        final String newContent = "수정된 새 내용";
-        UpdateArticleRequest request = new UpdateArticleRequest(newTitle, newContent);
-
-        // when
-        ResultActions result = mockMvc.perform(put(url, savedArticle.getId())
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        result.andExpect(status().isOk());
-
-        Article updatedArticle = blogRepository.findById(savedArticle.getId()).orElseThrow();
-        assertThat(updatedArticle.getTitle()).isEqualTo(newTitle);
-        assertThat(updatedArticle.getContent()).isEqualTo(newContent);
-    }
-`],
+    ['// [미션 14] ① 애플리케이션 전체(모든 빈)를 띄우는 통합 테스트  ② MockMvc 를 자동으로 만들어 주입 — 어노테이션 2개\nclass', '@SpringBootTest\n@AutoConfigureMockMvc\nclass'],
+    ['    // [미션 14] ③ 아래 네 필드는 스프링이 넣어 줘요 — 필드마다 같은 어노테이션 하나\n    protected MockMvc', '    @Autowired\n    protected MockMvc'],
+    ['    private WebApplicationContext', '    @Autowired\n    private WebApplicationContext'],
+    ['    private BlogRepository', '    @Autowired\n    private BlogRepository'],
+    ['    private ObjectMapper', '    @Autowired\n    private ObjectMapper'],
+    ['    // [미션 14] ④ 각 테스트 메서드 "전에" 매번 실행\n', '    @BeforeEach\n'],
+    ['result.andExpect(status().isOk());   // [미션 14] ⑤ 생성 성공에 맞는 상태 코드를 기대하도록', 'result.andExpect(status().isCreated());'],
+    ['    // [미션 14] ⑥ 테스트 전에 "/test-db.sql" 을 실행해 글 3개를 넣는 어노테이션\n', '    @Sql("/test-db.sql")\n'],
+    ['    // [미션 14] ⑦ 위 ⑥ 과 같은 어노테이션\n', '    @Sql("/test-db.sql")\n'],
   ]),
-  /* 미션 10: 리포지토리 테스트를 직접 작성 */
   [TT + 'repository/BlogRepositoryTest.java']: `package com.example.blog.repository;
 
 import com.example.blog.domain.Article;
@@ -304,112 +242,19 @@ class BlogRepositoryTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(blogRepository.findById(saved.getId())).isPresent();
     }
-
-    @Test
-    @DisplayName("전체 조회")
-    void findAll() {
-        // given
-        blogRepository.save(new Article("a", "b"));
-        blogRepository.save(new Article("c", "d"));
-
-        // when · then
-        assertThat(blogRepository.findAll()).hasSize(2);
-    }
-}
-`,
-  /* 미션 11: 5장 실습 — Book API 를 처음부터 */
-  [J + 'domain/Book.java']: `package com.example.blog.domain;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-@Entity
-public class Book {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String title;
-
-    private String author;
-
-    protected Book() {
-    }
-
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getAuthor() { return author; }
-}
-`,
-  [J + 'repository/BookRepository.java']: `package com.example.blog.repository;
-
-import com.example.blog.domain.Book;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface BookRepository extends JpaRepository<Book, Long> {
-}
-`,
-  [J + 'service/BookService.java']: `package com.example.blog.service;
-
-import com.example.blog.domain.Book;
-import com.example.blog.repository.BookRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-@Service
-public class BookService {
-
-    private final BookRepository bookRepository;
-
-    public BookService(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
-    }
-
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
-    }
-}
-`,
-  [J + 'controller/BookController.java']: `package com.example.blog.controller;
-
-import com.example.blog.domain.Book;
-import com.example.blog.service.BookService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
-@RestController
-public class BookController {
-
-    private final BookService bookService;
-
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
-
-    @GetMapping("/books")
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
-    }
 }
 `,
   [DATA]: patch(DATA, [
-    ['-- TODO 미션 11: Book 엔티티(book 테이블)를 만든 뒤 아래 두 줄의 주석(--)을 푸세요\n', ''],
+    ['-- [미션 17] ① Book 엔티티는 이미 있어요. 아래 두 줄의 주석(--)을 푸세요 → 앱이 안 뜨면 콘솔을 읽고 application.yaml 을 고치세요\n', ''],
     ["-- insert into book (title, author) values ('스프링 부트 4 개발자 되기', '신선영');", "insert into book (title, author) values ('스프링 부트 4 개발자 되기', '신선영');"],
     ["-- insert into book (title, author) values ('자바 ORM 표준 JPA 프로그래밍', '김영한');", "insert into book (title, author) values ('자바 ORM 표준 JPA 프로그래밍', '김영한');"],
   ]),
   [YAML]: patch(YAML, [
-    ['    name: blog\n', '    name: blog\n  jpa:\n    defer-datasource-initialization: true   # data.sql 을 JPA 가 테이블을 만든 "뒤에" 실행\n'],
+    ['  # [미션 17] ② data.sql 을 JPA 가 테이블을 만든 "뒤에" 실행하게 하는 설정 (spring.jpa 아래 한 줄)\n', '  jpa:\n    defer-datasource-initialization: true   # data.sql 을 JPA 가 테이블을 만든 "뒤에" 실행\n'],
   ]),
-  /* 미션 12: AOP */
   [ASPECT]: patch(ASPECT, [
-    ['import org.aspectj.lang.annotation.Aspect;', 'import org.aspectj.lang.annotation.Aspect;\nimport org.springframework.stereotype.Component;'],
-    ['// TODO 미션 12: 서비스 메서드가 호출될 때마다 이 Aspect 가 동작하게 만드세요\n@Slf4j', '@Slf4j\n@Component'],
+    ['// [미션 19] ① "이 클래스는 Aspect" 표시  ② 스프링 빈으로 등록 — 어노테이션 2개\n@Slf4j', '@Slf4j\n@Aspect\n@Component'],
+    ['    // [미션 19] ③ 포인트컷의 패키지 이름에 오타가 하나 있어요 (실제 서비스 패키지와 비교)\n', ''],
     ['com.example.blog.services..*', 'com.example.blog.service..*'],
   ]),
 };

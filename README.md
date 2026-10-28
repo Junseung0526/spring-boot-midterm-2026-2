@@ -8,7 +8,7 @@ IntelliJ 처럼 코드를 직접 작성 · 실행 · 테스트하면서 **MVC �
 |---|---|
 | **개념 애니메이션** | 왼쪽 Concepts — 코드가 타이핑되고 SVG 가 움직이며 자동 재생. 장면이 끝나면 이해 확인 퀴즈 · 관련 실습 · 다음 개념으로 이어짐 |
 | **IntelliJ New UI** | 자동완성 · 자동 import · 빨간 밑줄 · Run 콘솔 · HTTP Client(`requests.http`) · 테스트 실행(✔/✖ 거터) |
-| **12개 미션 (6단계, 강의 1~6장)** | 6장 블로그 API(`/api/articles`)를 **빈 클래스**에서 시작해 완성: 엔티티 · 리포지토리(기본 생성자 함정) → 추가(201) · 목록(응답 DTO) · 단건(`orElseThrow` 예외) · 삭제 → 수정(**save() 없이 변경 감지**) → readOnly 트랜잭션 함정 → 삭제 · 수정 · `@DataJpaTest` 테스트 **직접 작성**(변이 검사로 약한 테스트 불합격) → **5장 실습 Book API**(`defer-datasource-initialization`) → 보너스 AOP. 제공 테스트(`@SpringBootTest + MockMvc + @Sql`)와 실제 실행한 HTTP 응답으로 채점하며 record DTO · 204 삭제 같은 다른 정답도 인정. 진단은 원인만 말하고, 힌트는 틀릴 때마다 하나씩, 정답 예시는 2번 틀린 뒤 열림. 자세한 내용은 [실습 가이드](PRACTICE_GUIDE.md) |
+| **20개 미션 (7단계, 강의 1~6장)** | 시험 형식에 맞춘 **빈칸 채우기 11개 + 코드 해석 9개**. 완성된 블로그 API(`/api/articles`)에서 어노테이션 · 핵심 한 줄(`orElseThrow`, `HttpStatus.CREATED`, `stream().map().toList()`, `final`, `defer-datasource-initialization` 등)만 비워 두고, `[미션 N]` 주석 자리를 채우면 빈칸 검사 + 실제 실행(앱 기동 · HTTP · 테스트)으로 채점. 해석 미션은 미션 창에 답을 적으면 핵심 단어 포함 여부로 채점(띄어쓰기 · 대소문자 무시). 틀린 빈칸은 실제 스프링처럼 실패(기본 생성자 · final · 트랜잭션 · Table not found). 힌트는 틀릴 때마다 하나씩, 정답 예시 · 모범 답안은 2번 틀린 뒤 열림. 자세한 내용은 [실습 가이드](PRACTICE_GUIDE.md) |
 | **처음부터 직접 작성** | Project 의 `＋ New` 로 Controller / Service / Repository / Entity / DTO / Config / Test 파일 생성 |
 | **테스트 코드** | `@SpringBootTest` · `@WebMvcTest`(+`@MockitoBean`) · Mockito 단위 테스트 10개가 인수 조건으로 포함, `@DataJpaTest` 와 DELETE 테스트는 학생이 작성 |
 | **Git(시뮬레이션)** | 변경 파일 색상, Commit 도구창(Ctrl+K) · Diff · 로그 · Push |
